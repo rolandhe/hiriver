@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans 
+     http://www.springframework.org/schema/beans/spring-beans-4.1.xsd 
+     http://www.springframework.org/schema/context 
+     http://www.springframework.org/schema/context/spring-context-4.1.xsd">
+    <context:component-scan base-package="com.hiriver">
+        <context:exclude-filter type="annotation"
+            expression="org.springframework.stereotype.Controller" />
+        <context:exclude-filter type="annotation"
+            expression="org.springframework.web.bind.annotation.ControllerAdvice" />
+    </context:component-scan>
+
+    <bean id="propertyConfigurer"
+        class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath:*.properties</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="transportConfig" class="com.hiriver.unbiz.mysql.lib.TransportConfig">
+        <property name="connectTimeout" value="${connectTimeout}"></property>
+        <property name="soTimeout" value="${soTimeout}"></property>
+    </bean>
+
+    <bean id="tableFilter"
+        class="com.hiriver.unbiz.mysql.lib.filter.impl.BlackWhiteNameListTableFilter">
+        <property name="tableWhite" value="${table.white}"></property>
+    </bean>
+
+    <bean id="mysqlStreamSource" class="com.hiriver.streamsource.impl.MysqlStreamSource">
+        <property name="userName" value="${user_name}"></property>
+        <property name="password" value="${password}"></property>
+        <property name="hostUrl" value="${hostUrl}"></property>
+        <property name="serverId" value="${serverId}"></property>
+        <property name="checkSum" value="${checkSum}"></property>
+        <property name="transportConfig" ref="transportConfig" />
+        <property name="tableFilter" ref="tableFilter"></property>
+    </bean>
+
+    <bean id="positionStore"
+        class="com.hiriver.position.store.impl.FileGtIdBinlogPositionStore">
+        <property name="filePath" value="${position.store.path}"></property>
+    </bean>
+
+
+    <bean id="channel_0000" class="com.hiriver.channel.stream.impl.DefaultChannelStream">
+        <property name="faultTolerantTimeout" value="${faultTolerantTimeout}"></property>
+        <property name="channelId" value="${channel.0000.id}"></property>
+        <property name="binlogPositionStore" ref="positionStore"></property>
+        <property name="streamSource" ref="mysqlStreamSource"></property>
+        <property name="consumer" ref="sampleConsumer"></property>
+        <property name="configBinlogPos">
+            <bean
+                class="com.hiriver.unbiz.mysql.lib.protocol.binlog.GTidBinlogPosition">
+                <constructor-arg value="${channel.0000.gtid}" />
+            </bean>
+        </property>
+    </bean>
+
+
+    <!-- <import resource="classpath:spring/spring-ds-*.xml"/> -->
+</beans>
