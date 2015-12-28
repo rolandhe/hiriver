@@ -238,7 +238,7 @@ public class DefaultChannelStream implements ChannelStream {
             if (transactionRecognizer.isEnd(validOutput)) {
                 context.setNextPos(transactionRecognizer.getCouldNextPos());
                 BufferableBinlogDataSet bufferDs =
-                        createPersistPosBufferableBinlogDataSet(transactionRecognizer.getCurrentTransBeginPos());
+                        createPersistPosBufferableBinlogDataSet(transactionRecognizer.getCouldNextPos());
                 ensureDispatch(bufferDs);
                 LOG.debug("{},end trans, {}", this.channelId, transactionRecognizer.getCurrentTransBeginPos());
             }
