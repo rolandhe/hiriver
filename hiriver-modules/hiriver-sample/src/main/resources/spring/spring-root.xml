@@ -41,26 +41,33 @@
         <property name="tableFilter" ref="tableFilter"></property>
     </bean>
 
-    <bean id="positionStore"
+    <bean id="gtIdPositionStore"
         class="com.hiriver.position.store.impl.FileGtIdBinlogPositionStore">
         <property name="filePath" value="${position.store.path}"></property>
     </bean>
+    <bean id="binlogNamePositionStore"
+        class="com.hiriver.position.store.impl.FileBinlogNameAndPosBinlogPositionStore">
+        <property name="filePath" value="${position.store.path}"></property>
+    </bean>
+    <bean id="gtidPos"
+        class="com.hiriver.unbiz.mysql.lib.protocol.binlog.GTidBinlogPosition">
+        <constructor-arg value="${channel.0000.gtid}" />
+    </bean>
 
+    <bean id="binlogPos"
+        class="com.hiriver.unbiz.mysql.lib.protocol.binlog.BinlogFileBinlogPosition">
+        <constructor-arg value="${channel.0000.binlog}" />
+        <constructor-arg value="${channel.0000.binlog.pos}" />
+    </bean>
+    <bean id="transactionRecognizer" class="com.hiriver.channel.stream.impl.BinlogNameAndPosTransactionRecognizer" ></bean>
 
     <bean id="channel_0000" class="com.hiriver.channel.stream.impl.DefaultChannelStream">
         <property name="faultTolerantTimeout" value="${faultTolerantTimeout}"></property>
         <property name="channelId" value="${channel.0000.id}"></property>
-        <property name="binlogPositionStore" ref="positionStore"></property>
+        <property name="binlogPositionStore" ref="gtIdPositionStore"></property>
         <property name="streamSource" ref="mysqlStreamSource"></property>
         <property name="consumer" ref="sampleConsumer"></property>
-        <property name="configBinlogPos">
-            <bean
-                class="com.hiriver.unbiz.mysql.lib.protocol.binlog.GTidBinlogPosition">
-                <constructor-arg value="${channel.0000.gtid}" />
-            </bean>
-        </property>
+        <property name="configBinlogPos" ref="gtidPos"></property>
+       <!--  <property name="transactionRecognizer" ref="transactionRecognizer"></property> -->
     </bean>
-
-
-    <!-- <import resource="classpath:spring/spring-ds-*.xml"/> -->
 </beans>

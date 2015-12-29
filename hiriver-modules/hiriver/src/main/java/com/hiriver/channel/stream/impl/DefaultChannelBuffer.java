@@ -10,7 +10,7 @@ import com.hiriver.channel.stream.BufferableBinlogDataSet;
 import com.hiriver.channel.stream.ChannelBuffer;
 
 public class DefaultChannelBuffer implements ChannelBuffer {
-    private int limit = 5000;
+    private int limit = 1;
     private BlockingQueue<BufferableBinlogDataSet> queue = new LinkedBlockingQueue<>(limit) ;
     
     public int getLimit() {

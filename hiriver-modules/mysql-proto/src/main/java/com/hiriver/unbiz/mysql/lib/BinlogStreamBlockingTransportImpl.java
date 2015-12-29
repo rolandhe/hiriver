@@ -294,8 +294,16 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
         }
         if (event instanceof BaseRowEvent) {
             BaseRowEvent rowEvent = (BaseRowEvent) event;
-            return this.tableFilter.filter(rowEvent.getTableMapEvent().getSchema(),
+            
+            
+            boolean ret =  this.tableFilter.filter(rowEvent.getTableMapEvent().getSchema(),
                     rowEvent.getTableMapEvent().getTableName());
+            
+            LOGGER.debug("filter row event,{}.{}, {} ",rowEvent.getTableMapEvent().getSchema(),rowEvent.getTableMapEvent().getTableName(),ret);
+            if(ret){
+            	return true;
+            }
+            return ret;
         } else {
             return true;
         }

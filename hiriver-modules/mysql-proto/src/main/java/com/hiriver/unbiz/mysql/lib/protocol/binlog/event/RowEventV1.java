@@ -18,7 +18,7 @@ public class RowEventV1 extends BaseRowEvent implements BinlogEvent {
 
     @Override
     protected void parseVerPostHeader(byte[] buf, Position pos) {
-
+    	pos.forwardPos(2);
     }
 
     @Override

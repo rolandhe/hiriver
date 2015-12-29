@@ -4,6 +4,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+
 public class PassSecure {
 
     private PassSecure() {
@@ -28,15 +29,24 @@ public class PassSecure {
     }
 
     private static final byte[] scramble411(byte[] pass, byte[] seed, MessageDigest md) {
-        byte[] pass1 = md.digest(pass);
+        byte[] passwordHashStage1 = md.digest(pass);
         md.reset();
-        byte[] pass2 = md.digest(pass1);
+
+        byte[] passwordHashStage2 = md.digest(passwordHashStage1);
         md.reset();
+
         md.update(seed);
-        byte[] pass3 = md.digest(pass2);
-        for (int i = 0; i < pass3.length; i++) {
-            pass3[i] = (byte) (pass3[i] ^ pass1[i]);
+        md.update(passwordHashStage2);
+
+        byte[] toBeXord = md.digest();
+
+        int numToXor = toBeXord.length;
+
+        for (int i = 0; i < numToXor; i++) {
+            toBeXord[i] = (byte) (toBeXord[i] ^ passwordHashStage1[i]);
         }
-        return pass3;
+
+        return toBeXord;
+        
     }
 }

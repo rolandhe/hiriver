@@ -11,7 +11,8 @@ public class TimeStampColumnTypeValueParser implements ColumnTypeValueParser {
     @Override
     public Object parse(byte[] buf, Position pos, ColumnDefinition columnDef, int meta) {
         long secValue = MysqlNumberUtils.readNInt(buf, pos, 4);
-        return new Timestamp(secValue);
+        secValue *=1000;
+        return new  Timestamp(secValue);
     }
 
 }

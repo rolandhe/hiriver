@@ -2,6 +2,8 @@ package com.hiriver.sample;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.hiriver.channel.BinlogDataSet;
@@ -13,17 +15,17 @@ import com.hiriver.unbiz.mysql.lib.output.RowModifyTypeEnum;
 
 @Component
 public class SampleConsumer extends AbstractConsumer implements Consumer {
-
+	private static final Logger LOG = LoggerFactory.getLogger(SampleConsumer.class);
     @Override
     protected void consumerRowData(final BinlogDataSet rowData) {
 
         for (String tb : rowData.getRowDataMap().keySet()) {
-            System.out.println("=======start table:" + tb+"=======");
+        	LOG.info("=======start table:" + tb+"=======");
             List<BinlogResultRow> rowList = rowData.getRowDataMap().get(tb);
 
             int index = 0;
             for (BinlogResultRow row : rowList) {
-                System.out.println("=======start row [" + (index)+"]=======");
+                LOG.info("=======start row [" + (index)+"]=======");
                 if (row.getRowModifyType() == RowModifyTypeEnum.INSERT) {
                     outputRow(row.getAfterColumnValueList());
                 }
@@ -34,17 +36,17 @@ public class SampleConsumer extends AbstractConsumer implements Consumer {
                     outputRow(row.getBeforeColumnValueList());
                     outputRow(row.getAfterColumnValueList());
                 }
-                System.out.println("=======end row [" + (index)+"]=======");
+                LOG.info("=======end row [" + (index)+"]=======");
                 index++;
             }
-            System.out.println("=======end table:" + tb + "=======");
+            LOG.info("=======end table:" + tb + "=======");
         }
 
     }
 
     private void outputRow(List<BinlogColumnValue> rowValues) {
         for (BinlogColumnValue val : rowValues) {
-            System.out.println(val);
+            LOG.info(val.toString());
         }
     }
 

@@ -28,7 +28,7 @@ public class TimeStamp2ColumnTypeValueParser implements ColumnTypeValueParser {
             case 6:
                 usecValue = MysqlNumberUtils.readBigEdianNInt(buf, pos, 3);
         }
-        Timestamp tsValue = new Timestamp(secValue);
+        Timestamp tsValue = new Timestamp(secValue*1000);
         tsValue.setNanos((int) usecValue);
         return tsValue;
     }

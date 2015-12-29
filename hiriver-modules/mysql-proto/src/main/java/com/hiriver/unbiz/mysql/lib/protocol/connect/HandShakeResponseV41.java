@@ -24,7 +24,7 @@ import com.hiriver.unbiz.mysql.lib.protocol.tool.StringTool;
 public class HandShakeResponseV41 extends AbstractRequest implements Request {
     private final HandShakeV10 handshake;
 
-    private int maxSendPacketSize = (1 << 24) - 1; // 16M-1
+    private int maxSendPacketSize =128 * (1 << 20); // 16M-1
     private int charSet = MyCharset.UTF8.getCharset(); // utf8_general_ci
     private byte[] reserved = new byte[23];
     private String userName;
@@ -54,10 +54,9 @@ public class HandShakeResponseV41 extends AbstractRequest implements Request {
         }
         capability |= CapabilityFlagConst.CLIENT_FOUND_ROWS;
         capability |= CapabilityFlagConst.CLIENT_LOCAL_FILES;
-        capability |= CapabilityFlagConst.CLIENT_LONG_FLAG | CapabilityFlagConst.CLIENT_LONG_PASSWORD
-                | CapabilityFlagConst.CLIENT_PROTOCOL_41 | CapabilityFlagConst.CLIENT_TRANSACTIONS
-                | CapabilityFlagConst.CLIENT_SECURE_CONNECTION | CapabilityFlagConst.CLIENT_CONNECT_ATTRS;
-
+        capability |= CapabilityFlagConst.CLIENT_LONG_PASSWORD| CapabilityFlagConst.CLIENT_LONG_FLAG
+                | CapabilityFlagConst.CLIENT_PROTOCOL_41  | CapabilityFlagConst.CLIENT_TRANSACTIONS
+                | CapabilityFlagConst.CLIENT_SECURE_CONNECTION |CapabilityFlagConst.CLIENT_CONNECT_ATTRS;
         out.safeWrite(MysqlNumberUtils.write4Int(capability));
         out.safeWrite(MysqlNumberUtils.write4Int(maxSendPacketSize));
         out.write(charSet);
@@ -67,7 +66,9 @@ public class HandShakeResponseV41 extends AbstractRequest implements Request {
         if (this.password == null || this.password.length() == 0) {
             out.write(0x00);
         } else {
-            out.safeWrite(PassSecure.nativeMysqlSecure(password, handshake.getAuthData()));
+        	byte[] pass = PassSecure.nativeMysqlSecure(password, handshake.getAuthData());
+            out.safeWrite(MysqlNumberUtils.wirteLencodeInt(pass.length));
+            out.safeWrite(pass);
         }
 
         if (withDbName()) {

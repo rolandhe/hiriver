@@ -136,6 +136,20 @@ public class MysqlNumberUtils {
         }
         return buffer;
     }
+    
+    public static byte[] wirteLencodeInt(int value) {
+        if (value < 0xfb) {
+            return new byte[] { (byte) value };
+        }
+        if (value >= 0xfbL && value <= 0xffffL) {
+            return new byte[] { (byte) 0xfc, (byte) value, (byte) (value >> 8) };
+        }
+        if (value > 0xffffL && value <= 0xffffffL) {
+            return new byte[] { (byte) 0xfd, (byte) value, (byte) (value >> 8), (byte) (value >> 16) };
+        }
+
+        return new byte[] {(byte) 0xfe, (byte) value, (byte) (value >> 8), (byte) (value >> 16) ,(byte) (value >> 24)};
+    }
 
     public static int getLencodeLen(byte[] buf, Position off) {
         int flag = buf[off.getPos()] & 0xff;
