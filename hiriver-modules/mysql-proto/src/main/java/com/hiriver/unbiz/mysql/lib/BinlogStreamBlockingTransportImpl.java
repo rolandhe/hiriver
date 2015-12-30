@@ -39,6 +39,15 @@ import com.hiriver.unbiz.mysql.lib.protocol.text.TextCommandQueryResponse;
 import com.hiriver.unbiz.mysql.lib.protocol.tool.PacketTool;
 import com.hiriverunbiz.mysql.lib.exp.InvalidMysqlDataException;
 
+/**
+ * 用于binlog复制的堵塞模式的通信实现。一般用于mysql的主从同步实现。<br>
+ * <p>在本实现中也实现一部分Text protocol，这是因为在5.6版本中同步需要先判断一些
+ * server端的配置信息或者配置session参数，比如调用SET @master_binlog_checksum= @@global.binlog_checksum
+ * 配置checksum参数，后续也增加自动识别gtid mode的实现，这些都需需要实现Text protocol</p>
+ * 
+ * @author hexiufeng
+ *
+ */
 public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
         implements BinlogStreamBlockingTransport {
     private static final Logger LOGGER = LoggerFactory.getLogger(BinlogStreamBlockingTransportImpl.class);
@@ -59,6 +68,10 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
         }
 
     };
+    /**
+     * 表元数据的提供者实现，从db中读取，基于 Text Protocol的COM_FIELD_LIST指令，比desc table name sql更有效，
+     * 返回更多数据
+     */
     private TableMetaProvider tableMetaProvider = new TableMetaProvider() {
         private final Map<String, TableMeta> cache = new HashMap<String, TableMeta>();
 
@@ -90,7 +103,12 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
             cache.put(fullTableName, tableMeta);
             return tableMeta;
         }
-
+        /**
+         * 从{@link ColumnDefinitionResponse}转换成外部可以识别的 {@link ColumnDefinition}
+         * 
+         * @param coldef ColumnDefinitionResponse定义
+         * @return ColumnDefinition
+         */
         private ColumnDefinition createColumnDefinition(ColumnDefinitionResponse coldef) {
             ColumnDefinition def = new ColumnDefinition();
             def.setColumName(coldef.getName());
@@ -139,6 +157,12 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
         }
     }
 
+    /**
+     * 基于Text Protocol实现执行sql的功能
+     * 
+     * @param sql sql
+     * @return 本次执行影响的行数
+     */
     private int executeSQL(String sql) {
         Response resp = executeSQLCore(sql);
         if (resp instanceof OKPacket) {
@@ -147,6 +171,12 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
         return 0;
     }
 
+    /**
+     * 基于Text Protocol实现执行sql的功能,可以返回结果
+     * 
+     * @param sql sql
+     * @return 返回结果
+     */
     private Response executeSQLCore(String sql) {
         TextCommandQueryRequest query = new TextCommandQueryRequest(sql);
         super.writeRequest(query);
@@ -181,6 +211,9 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
         };
     }
 
+    /**
+     * 在dump执行在主库注册当前从库
+     */
     private void registerSlave() {
         // register
         Request reg = new RegisterRequest(serverId);
@@ -221,6 +254,12 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
         return distinguishEvent(event);
     }
 
+    /**
+     * 识别读取到事件是否是有效事件
+     * 
+     * @param event 当前读取到binlog事件
+     * @return 有效事件描述
+     */
     private ValidBinlogOutput distinguishEvent(BinlogEvent event) {
         if (event instanceof GTidEvent) {
             return new ValidBinlogOutput(event, context.getRotateEvent().getNextBinlogName(), ValidEventType.GTID);
@@ -248,6 +287,9 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
         return null;
     }
 
+    /**
+     * 读取当session的FORMAT_DESCRIPTION_EVENT事件
+     */
     private void readFormatEvent() {
         Position pos = Position.factory();
         while (true) {
@@ -263,6 +305,12 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
         }
     }
 
+    /**
+     * 从binlog读取事件
+     * 
+     * @param pos 给定一个可重用的Pos，用于控制缓存读取的位置
+     * @return binlog事件
+     */
     private BinlogEvent readEvent(Position pos) {
         byte[] buf = super.readResponsePayload();
 
@@ -288,6 +336,12 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
         return event;
     }
 
+    /**
+     * 事件过滤，根据db、table名称过滤，过滤通过的可以继续解析，否则直接丢弃
+     * 
+     * @param event 事件
+     * @return 是否过滤通过
+     */
     private boolean filter(BinlogEvent event) {
         if (this.tableFilter == null) {
             return true;

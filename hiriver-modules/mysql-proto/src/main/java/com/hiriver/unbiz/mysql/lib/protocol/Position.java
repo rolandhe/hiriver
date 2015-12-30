@@ -1,5 +1,12 @@
 package com.hiriver.unbiz.mysql.lib.protocol;
 
+ /**
+  * 从byte数组中解析数据时，描述当前解析到哪个字节的辅助类，
+  * 在一包数据被持续解析时非常有用，比如解析多行数据时，
+  * 
+  * @author hexiufeng
+  *
+  */
 public final class Position {
     private int pos;
 

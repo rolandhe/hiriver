@@ -2,6 +2,12 @@ package com.hiriver.unbiz.mysql.lib.protocol.binlog;
 
 import com.hiriver.unbiz.mysql.lib.protocol.tool.GTSidTool;
 
+/**
+ * 描述一个gtid，format: uuid:transactionid
+ * 
+ * @author hexiufeng
+ *
+ */
 public class GTIDInfo {
     private final String uuid;
     private long stop;

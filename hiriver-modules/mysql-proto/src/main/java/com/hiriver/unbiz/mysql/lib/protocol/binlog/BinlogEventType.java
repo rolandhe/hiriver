@@ -1,5 +1,11 @@
 package com.hiriver.unbiz.mysql.lib.protocol.binlog;
 
+/**
+ * mysql binlog所支持的binlog事件，copy在mysql的c源码
+ * 
+ * @author hexiufeng
+ *
+ */
 public interface BinlogEventType {
     int UNKNOWN_EVENT = 0x00;
 

@@ -1,5 +1,11 @@
 package com.hiriver.unbiz.mysql.lib.protocol;
 
+/**
+ * 字段的定义信息，copy from mysql c 源码
+ * 
+ * @author hexiufeng
+ *
+ */
 public interface ColumnFlagConst {
     int NOT_NULL_FLAG = 0x01; /* Field can't be NULL */
     int PRI_KEY_FLAG = 0x02; /* Field is part of a primary key */

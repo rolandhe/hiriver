@@ -2,6 +2,12 @@ package com.hiriver.unbiz.mysql.lib;
 
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.exp.InvalidColumnType;
 
+/**
+ * mysql所支持的列的数据类型，和java的类型有所不同
+ * 
+ * @author hexiufeng
+ *
+ */
 public enum ColumnType {
     MYSQL_TYPE_DECIMAL(0x00, 2), 
     MYSQL_TYPE_TINY(0x01, 0),

@@ -3,6 +3,12 @@ package com.hiriver.unbiz.mysql.lib.protocol.binlog;
 import com.hiriver.unbiz.mysql.lib.protocol.Request;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.extra.BinlogPosition;
 
+/**
+ * 基于gtid的同步点实现，适用于mysql5.6.9之后的版本
+ * 
+ * @author hexiufeng
+ *
+ */
 public class GTidBinlogPosition implements BinlogPosition {
     private GTIDSet gtidset;
 

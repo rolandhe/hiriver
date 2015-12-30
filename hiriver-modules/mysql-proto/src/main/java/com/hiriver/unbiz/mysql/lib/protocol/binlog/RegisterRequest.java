@@ -4,6 +4,12 @@ import com.hiriver.unbiz.mysql.lib.protocol.AbstractRequest;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlNumberUtils;
 import com.hiriver.unbiz.mysql.lib.protocol.tool.SafeByteArrayOutputStream;
 
+/**
+ * 注册从库到主库请求指令，实现COM_REGISTER_SLAVE
+ * 
+ * @author hexiufeng
+ *
+ */
 public class RegisterRequest extends AbstractRequest {
     private final int serverId;
 

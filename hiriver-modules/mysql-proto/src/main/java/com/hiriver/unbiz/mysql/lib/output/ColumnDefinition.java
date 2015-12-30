@@ -3,13 +3,40 @@ package com.hiriver.unbiz.mysql.lib.output;
 import com.hiriver.unbiz.mysql.lib.ColumnType;
 import com.hiriver.unbiz.mysql.lib.MyCharset;
 
+/**
+ * 表字段描述
+ * 
+ * @author hexiufeng
+ *
+ */
 public class ColumnDefinition {
+    /**
+     * 字段名称
+     */
     private String columName;
+    /**
+     * 字段类型
+     */
     private ColumnType type;
+    /**
+     * 字段的字符集
+     */
     private MyCharset charset;
+    /**
+     * 是否是无符号
+     */
     private boolean isUnsigned;
+    /**
+     * 是否是主键
+     */
     private boolean isPrimary;
+    /**
+     * 是否在unique key字段
+     */
     private boolean isUnique;
+    /**
+     * 是否索引字段
+     */
     private boolean isKey;
 
     public String getColumName() {

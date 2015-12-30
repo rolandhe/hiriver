@@ -29,6 +29,11 @@ public interface BinlogStreamBlockingTransport extends BlockingTransport {
      */
     ValidBinlogOutput getBinlogOutput();
 
-    
+    /**
+     * 返回给上层有效的事件，与{@link BinlogStreamBlockingTransport#getBinlogOutput}不同的是，它读取到
+     * mysql binlog事件即可返回，而不论它是否是有效的事件
+     * 
+     * @return 有效事件，如果当前不是有效事件，返回null
+     */
     ValidBinlogOutput getBinlogOutputImmediately();
 }

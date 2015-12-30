@@ -1,5 +1,11 @@
 package com.hiriver.unbiz.mysql.lib;
 
+/**
+ * 描述mysql所支持的字符集，当前只支持3中，后续逐步完善
+ * 
+ * @author hexiufeng
+ *
+ */
 public enum MyCharset {
 
     LATIN1_SWEDISH(0x08, "latin1_swedish_ci", "latin1"), UTF8(0x21, "utf8_general_ci", "utf-8"), BINARY(0x3f, "binary",

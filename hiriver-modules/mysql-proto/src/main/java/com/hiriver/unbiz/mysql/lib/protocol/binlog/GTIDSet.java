@@ -3,6 +3,12 @@ package com.hiriver.unbiz.mysql.lib.protocol.binlog;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * 描述一组gtid，gtid之间以逗号分隔
+ * 
+ * @author hexiufeng
+ *
+ */
 public class GTIDSet {
     private final Map<String, GTIDInfo> map = new LinkedHashMap<String, GTIDInfo>();
 

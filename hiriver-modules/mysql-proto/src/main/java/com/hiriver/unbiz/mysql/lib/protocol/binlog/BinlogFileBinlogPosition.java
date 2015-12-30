@@ -3,6 +3,13 @@ package com.hiriver.unbiz.mysql.lib.protocol.binlog;
 import com.hiriver.unbiz.mysql.lib.protocol.Request;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.extra.BinlogPosition;
 
+/**
+ * binlog file name + offset的实现，一般用于mysql5.6.9之前的版本，之后的版本请
+ * 使用{@link GTidBinlogPosition}
+ * 
+ * @author hexiufeng
+ *
+ */
 public class BinlogFileBinlogPosition implements BinlogPosition {
     private long pos;
     private String binlogFileName;

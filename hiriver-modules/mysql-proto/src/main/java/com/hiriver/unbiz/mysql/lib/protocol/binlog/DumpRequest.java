@@ -5,6 +5,12 @@ import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlNumberUtils;
 import com.hiriver.unbiz.mysql.lib.protocol.tool.SafeByteArrayOutputStream;
 import com.hiriver.unbiz.mysql.lib.protocol.tool.StringTool;
 
+/**
+ * 基于binlog file name + offset的dump binlog指令实现,适用于COM_BINLOG_DUMP指令
+ * 
+ * @author hexiufeng
+ *
+ */
 public class DumpRequest extends AbstractRequest {
     private final long pos;
     private final int serverId;

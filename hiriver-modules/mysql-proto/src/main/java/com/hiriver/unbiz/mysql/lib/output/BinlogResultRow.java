@@ -2,8 +2,20 @@ package com.hiriver.unbiz.mysql.lib.output;
 
 import java.util.List;
 
+/**
+ * 行数据的描述
+ * 
+ * @author hexiufeng
+ *
+ */
 public class BinlogResultRow {
+    /**
+     * delete、update事件有效
+     */
     private final List<BinlogColumnValue> beforeColumnValueList;
+    /**
+     * insert、update事件有效
+     */
     private final List<BinlogColumnValue> afterColumnValueList;
     private final RowModifyTypeEnum rowModifyType;
 

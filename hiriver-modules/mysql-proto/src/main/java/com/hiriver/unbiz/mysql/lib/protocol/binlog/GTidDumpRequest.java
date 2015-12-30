@@ -4,6 +4,12 @@ import com.hiriver.unbiz.mysql.lib.protocol.AbstractRequest;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlNumberUtils;
 import com.hiriver.unbiz.mysql.lib.protocol.tool.SafeByteArrayOutputStream;
 
+/**
+ * 基于gtid的dump指令实现，适用于COM_BINLOG_DUMP_GTID指令
+ * 
+ * @author hexiufeng
+ *
+ */
 public class GTidDumpRequest extends AbstractRequest {
     private final int serverId;
     private final GTIDSet gtidset;
