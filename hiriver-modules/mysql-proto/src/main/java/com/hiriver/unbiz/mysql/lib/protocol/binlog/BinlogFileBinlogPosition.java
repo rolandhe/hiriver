@@ -11,7 +11,7 @@ public class BinlogFileBinlogPosition implements BinlogPosition {
 
     }
 
-    public BinlogFileBinlogPosition(String binlogFileName,long pos) {
+    public BinlogFileBinlogPosition(String binlogFileName, long pos) {
         this.pos = pos;
         this.binlogFileName = binlogFileName;
     }
@@ -28,13 +28,13 @@ public class BinlogFileBinlogPosition implements BinlogPosition {
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         return binlogFileName + ":" + pos;
     }
 
     @Override
     public boolean isSame(BinlogPosition posStore) {
-        if(!(posStore instanceof BinlogFileBinlogPosition)){
+        if (!(posStore instanceof BinlogFileBinlogPosition)) {
             return false;
         }
         return toString().equals(posStore.toString());

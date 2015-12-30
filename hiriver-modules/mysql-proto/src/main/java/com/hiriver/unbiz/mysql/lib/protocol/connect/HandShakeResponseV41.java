@@ -24,7 +24,7 @@ import com.hiriver.unbiz.mysql.lib.protocol.tool.StringTool;
 public class HandShakeResponseV41 extends AbstractRequest implements Request {
     private final HandShakeV10 handshake;
 
-    private int maxSendPacketSize =128 * (1 << 20); // 16M-1
+    private int maxSendPacketSize = (1 << 24); // 16M
     private int charSet = MyCharset.UTF8.getCharset(); // utf8_general_ci
     private byte[] reserved = new byte[23];
     private String userName;
@@ -54,9 +54,9 @@ public class HandShakeResponseV41 extends AbstractRequest implements Request {
         }
         capability |= CapabilityFlagConst.CLIENT_FOUND_ROWS;
         capability |= CapabilityFlagConst.CLIENT_LOCAL_FILES;
-        capability |= CapabilityFlagConst.CLIENT_LONG_PASSWORD| CapabilityFlagConst.CLIENT_LONG_FLAG
-                | CapabilityFlagConst.CLIENT_PROTOCOL_41  | CapabilityFlagConst.CLIENT_TRANSACTIONS
-                | CapabilityFlagConst.CLIENT_SECURE_CONNECTION |CapabilityFlagConst.CLIENT_CONNECT_ATTRS;
+        capability |= CapabilityFlagConst.CLIENT_LONG_PASSWORD | CapabilityFlagConst.CLIENT_LONG_FLAG
+                | CapabilityFlagConst.CLIENT_PROTOCOL_41 | CapabilityFlagConst.CLIENT_TRANSACTIONS
+                | CapabilityFlagConst.CLIENT_SECURE_CONNECTION | CapabilityFlagConst.CLIENT_CONNECT_ATTRS;
         out.safeWrite(MysqlNumberUtils.write4Int(capability));
         out.safeWrite(MysqlNumberUtils.write4Int(maxSendPacketSize));
         out.write(charSet);
@@ -66,8 +66,11 @@ public class HandShakeResponseV41 extends AbstractRequest implements Request {
         if (this.password == null || this.password.length() == 0) {
             out.write(0x00);
         } else {
-        	byte[] pass = PassSecure.nativeMysqlSecure(password, handshake.getAuthData());
-            out.safeWrite(MysqlNumberUtils.wirteLencodeInt(pass.length));
+            // mysql server可能支持native password plugin方式，但客户端使用非插件方式
+            // capabilities & CLIENT_SECURE_CONNECTION !=0 && capabilities & CLIENT_PLUGIN_AUTH_LENENC_CLIENT_DATA=0
+            // 参见http://dev.mysql.com/doc/internals/en/connection-phase-packets.html#packet-Protocol::HandshakeResponse
+            byte[] pass = PassSecure.nativeMysqlSecure(password, handshake.getAuthData());
+            out.safeWrite(MysqlNumberUtils.writeNInt(pass.length, 1));
             out.safeWrite(pass);
         }
 

@@ -1,7 +1,6 @@
 package com.hiriver.channel.stream.impl;
 
 import com.hiriver.channel.stream.TransactionRecognizer;
-import com.hiriver.unbiz.mysql.lib.protocol.binlog.GTIDInfo;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.GTidBinlogPosition;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.ValidBinlogOutput;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.ValidEventType;
@@ -38,13 +37,13 @@ public class GTIDTransactionRecognizer extends AbstractTransactionRecognizer imp
 
     
 
-    @Override
-    public BinlogPosition getCouldNextPos() {
-        GTIDInfo info = new GTIDInfo(gtIdString);
-        info.setStop(info.getStop() + 1);
-        GTidBinlogPosition pos = new GTidBinlogPosition(info.toString());
-        return pos;
-    }
+//    @Override
+//    public BinlogPosition getCouldNextPos() {
+//        GTIDInfo info = new GTIDInfo(gtIdString);
+//        info.setStop(info.getStop() + 1);
+//        GTidBinlogPosition pos = new GTidBinlogPosition(info.toString());
+//        return pos;
+//    }
 
     private String getNewGtId(ValidBinlogOutput validOutput) {
         if (validOutput.getEventType() == ValidEventType.GTID) {

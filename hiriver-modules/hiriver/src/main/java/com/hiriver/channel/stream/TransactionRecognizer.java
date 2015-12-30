@@ -8,6 +8,6 @@ public interface TransactionRecognizer {
     boolean isEnd(ValidBinlogOutput validOutput);
     boolean tryRecognizePos(ValidBinlogOutput validOutput);
     BinlogPosition getCurrentTransBeginPos();
-    BinlogPosition getCouldNextPos();
+//    BinlogPosition getCouldNextPos();
     String getGTId();
 }

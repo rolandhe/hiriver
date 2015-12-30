@@ -13,11 +13,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hiriver.position.store.BinlogPositionStore;
-import com.hiriver.unbiz.mysql.lib.protocol.binlog.extra.BinlogPosition;
 
-public abstract class AbstractFileBinlogPositionStore implements BinlogPositionStore {
-
-	private static final Logger LOG = LoggerFactory.getLogger(AbstractFileBinlogPositionStore.class);
+public class FileBinlogPositionStore extends AbstractBinlogPositionStore implements BinlogPositionStore {
+    private static final Logger LOG = LoggerFactory.getLogger(FileBinlogPositionStore.class);
     private static final int MAX_BUFFER = 2048;
     private String filePath;
 
@@ -29,49 +27,50 @@ public abstract class AbstractFileBinlogPositionStore implements BinlogPositionS
         this.filePath = filePath;
     }
 
+    private String getFileName(String channelId) {
+        return filePath + "/" + channelId;
+    }
+
     @Override
-    public void store(BinlogPosition binlogPosition, String channelId) {
+    protected void storeImpl(byte[] posBuf, String channelId) {
         OutputStream output = null;
         try {
             output = new FileOutputStream(getFileName(channelId));
-            IOUtils.write(binlogPosition.toBytesArray(), output);
+            IOUtils.write(posBuf, output);
         } catch (FileNotFoundException e) {
-            LOG.error("store binlog pos error.", e);
+            LOG.error("store binlog pos error " + channelId, e);
         } catch (IOException e) {
-            LOG.error("store binlog pos error.", e);
-        }finally{
-            if(output != null){
+            LOG.error("store binlog pos error " + channelId, e);
+        } finally {
+            if (output != null) {
                 IOUtils.closeQuietly(output);
             }
         }
 
     }
 
-    private String getFileName(String channelId){
-        return filePath + "/" + channelId;}
-
     @Override
-    public BinlogPosition load(String channelId) {
+    protected byte[] loadImpl(String channelId) {
         byte[] buffer = new byte[MAX_BUFFER];
-        
+
         InputStream input = null;
         File file = new File(getFileName(channelId));
-        if(!file.exists()){
+        if (!file.exists()) {
             return null;
         }
         try {
-            
+
             input = new FileInputStream(file);
             int len = IOUtils.read(input, buffer, 0, MAX_BUFFER);
-            String line = new String(buffer,0,len,"UTF-8");
-            return createBinlogPosition(line);
+            byte[] posBuf = new byte[len];
+            System.arraycopy(buffer, 0, posBuf, 0, len);
+            return posBuf;
         } catch (FileNotFoundException e) {
-            LOG.error("read binlog pos error.", e);
+            LOG.error("read binlog pos error " + channelId, e);
         } catch (IOException e) {
-            LOG.error("read binlog pos error.", e);
+            LOG.error("read binlog pos error " + channelId, e);
         }
         return null;
     }
 
-    protected abstract BinlogPosition createBinlogPosition(String line);
 }

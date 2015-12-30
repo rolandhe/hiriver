@@ -39,9 +39,9 @@ public class BinlogNameAndPosTransactionRecognizer extends AbstractTransactionRe
         return position;
     }
 
-    @Override
-    public BinlogPosition getCouldNextPos() {
-        return position;
-    }
+//    @Override
+//    public BinlogPosition getCouldNextPos() {
+//        return position;
+//    }
 
 }
