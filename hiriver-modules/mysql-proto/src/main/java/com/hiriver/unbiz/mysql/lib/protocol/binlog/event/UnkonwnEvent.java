@@ -3,6 +3,12 @@ package com.hiriver.unbiz.mysql.lib.protocol.binlog.event;
 import com.hiriver.unbiz.mysql.lib.protocol.Position;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.BinlogEvent;
 
+/**
+ * 未知事件，直接丢弃
+ * 
+ * @author hexiufeng
+ *
+ */
 public class UnkonwnEvent extends AbstractBinlogEvent implements BinlogEvent {
 
     public UnkonwnEvent(long eventBinlogPos, boolean hasCheckSum) {

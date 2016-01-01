@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans 
+     http://www.springframework.org/schema/beans/spring-beans-4.1.xsd 
+     http://www.springframework.org/schema/context 
+     http://www.springframework.org/schema/context/spring-context-4.1.xsd">
+
+    <bean id="binlogPos"
+        class="com.hiriver.unbiz.mysql.lib.protocol.binlog.BinlogFileBinlogPosition">
+        <constructor-arg value="${channel.0000.binlog}" />
+        <constructor-arg value="${channel.0000.binlog.pos}" />
+    </bean>
+    <bean id="transactionRecognizer"
+        class="com.hiriver.channel.stream.impl.BinlogNameAndPosTransactionRecognizer"></bean>
+
+    <bean id="mysqlStreamSource" class="com.hiriver.streamsource.impl.MysqlStreamSource">
+        <property name="userName" value="${user_name}"></property>
+        <property name="password" value="${password}"></property>
+        <property name="hostUrl" value="${hostUrl}"></property>
+        <property name="serverId" value="${serverId}"></property>
+        <property name="checkSum" value="${checkSum}"></property>
+        <property name="transportConfig" ref="transportConfig" />
+        <property name="tableFilter" ref="tableFilter"></property>
+    </bean>
+
+    <bean id="channel_0000" class="com.hiriver.channel.stream.impl.DefaultChannelStream">
+        <property name="faultTolerantTimeout" value="${faultTolerantTimeout}"></property>
+        <property name="channelId" value="${channel.0000.id}"></property>
+        <property name="binlogPositionStore" ref="positionStore"></property>
+        <property name="streamSource" ref="mysqlStreamSource"></property>
+        <property name="consumer" ref="sampleConsumer"></property>
+        <property name="configBinlogPos" ref="binlogPos"></property>
+        <property name="channelBuffer" ref="channelBuffer"></property>
+        <property name="transactionRecognizer" ref="transactionRecognizer"></property>
+    </bean>
+</beans>

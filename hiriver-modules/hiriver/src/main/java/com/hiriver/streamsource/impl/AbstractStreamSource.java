@@ -4,14 +4,32 @@ import com.hiriver.streamsource.StreamSource;
 import com.hiriver.unbiz.mysql.lib.TransportConfig;
 import com.hiriver.unbiz.mysql.lib.filter.TableFilter;
 
+/**
+ * 抽象的数据源实现
+ * 
+ * @author hexiufeng
+ *
+ */
 public abstract  class AbstractStreamSource implements StreamSource {
+    /**
+     * 通信属性
+     */
     private TransportConfig transportConfig = new TransportConfig();
     private String userName;
     private String password;
     private String hostUrl;
+    /**
+     * 从库id，hiriver是从库
+     */
     private int serverId;
+    /**
+     * mysql是否开启了crc32数据校验
+     */
     private boolean checkSum = true;
     
+    /**
+     * 表过滤规则
+     */
     private TableFilter tableFilter;
     
     public TransportConfig getTransportConfig() {

@@ -18,6 +18,13 @@ public class MysqlStringUtils {
     private MysqlStringUtils() {
     }
 
+    /**
+     * 读取null结尾的string
+     * 
+     * @param buf
+     * @param off
+     * @return
+     */
     public static byte[] readNulString(byte[] buf, Position off) {
         int end = -1;
         int start = off.getPos();
@@ -34,16 +41,39 @@ public class MysqlStringUtils {
         return Arrays.copyOfRange(buf, start, end);
     }
 
+    /**
+     * 读取指定长度的string
+     * 
+     * @param buf
+     * @param off
+     * @param len
+     * @return
+     */
     public static byte[] readFixString(byte[] buf, Position off, int len) {
         int start = off.getPos();
         off.forwardPos(len);
         return Arrays.copyOfRange(buf, start, start + len);
     }
 
+    /**
+     * 从当前位置读取到最后的string
+     * 
+     * @param buf
+     * @param off
+     * @return
+     */
     public static byte[] readEofString(byte[] buf, Position off) {
         return readEofString(buf, off, false);
     }
 
+    /**
+     * 从当前位置读取到最后的string,不包含最好4个字节的校验码
+     * 
+     * @param buf
+     * @param off
+     * @param hasCheckSum
+     * @return
+     */
     public static byte[] readEofString(byte[] buf, Position off, boolean hasCheckSum) {
         int len = buf.length - off.getPos();
         if (hasCheckSum) {

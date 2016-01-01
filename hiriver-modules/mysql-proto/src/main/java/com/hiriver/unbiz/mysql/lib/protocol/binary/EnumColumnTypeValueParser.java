@@ -4,6 +4,12 @@ import com.hiriver.unbiz.mysql.lib.output.ColumnDefinition;
 import com.hiriver.unbiz.mysql.lib.protocol.Position;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlNumberUtils;
 
+/**
+ * mysql枚举数据类型解析器，mysql枚举在mysql binlog内部本质上是string类型。代码逻辑来自mysql源码
+ * 
+ * @author hexiufeng
+ *
+ */
 public class EnumColumnTypeValueParser implements ColumnTypeValueParser {
 
     @Override

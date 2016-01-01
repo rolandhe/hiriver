@@ -6,6 +6,12 @@ import com.hiriver.unbiz.mysql.lib.output.ColumnDefinition;
 import com.hiriver.unbiz.mysql.lib.protocol.Position;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlNumberUtils;
 
+/**
+ * datetime2 类型的解析器。处理逻辑来自mysql源码
+ * 
+ * @author hexiufeng
+ *
+ */
 public class DateTime2ColumnTypeValueParser implements ColumnTypeValueParser {
     private static final long DATETIMEF_INT_OFS = 0x8000000000L;
 

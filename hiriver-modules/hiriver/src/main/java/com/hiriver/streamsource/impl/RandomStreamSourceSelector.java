@@ -5,6 +5,13 @@ import java.util.List;
 import com.hiriver.streamsource.StreamSource;
 import com.hiriver.streamsource.StreamSourceSelector;
 
+/**
+ * 基于随机算法的HA数据源选择策略实现。
+ * 线程安全
+ * 
+ * @author hexiufeng
+ *
+ */
 public class RandomStreamSourceSelector implements StreamSourceSelector {
 
     @Override

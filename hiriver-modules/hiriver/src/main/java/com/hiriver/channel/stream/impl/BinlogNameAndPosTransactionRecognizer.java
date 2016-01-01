@@ -5,6 +5,12 @@ import com.hiriver.unbiz.mysql.lib.protocol.binlog.BinlogFileBinlogPosition;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.ValidBinlogOutput;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.extra.BinlogPosition;
 
+/**
+ * binlog file + pos方式的事务识别器实现
+ * 
+ * @author hexiufeng
+ *
+ */
 public class BinlogNameAndPosTransactionRecognizer extends AbstractTransactionRecognizer
         implements TransactionRecognizer {
     private BinlogFileBinlogPosition position;
@@ -38,10 +44,4 @@ public class BinlogNameAndPosTransactionRecognizer extends AbstractTransactionRe
     public BinlogPosition getCurrentTransBeginPos() {
         return position;
     }
-
-//    @Override
-//    public BinlogPosition getCouldNextPos() {
-//        return position;
-//    }
-
 }

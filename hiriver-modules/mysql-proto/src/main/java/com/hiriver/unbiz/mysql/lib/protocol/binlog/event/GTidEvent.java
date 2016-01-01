@@ -6,6 +6,12 @@ import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlNumberUtils;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlStringUtils;
 import com.hiriver.unbiz.mysql.lib.protocol.tool.GTSidTool;
 
+/**
+ * gtid事件，在mysql5.6.9之后添加的事件，描述该事务的唯一id，在一个事务中，第一个被发送的事件
+ * 
+ * @author hexiufeng
+ *
+ */
 public class GTidEvent extends AbstractBinlogEvent implements BinlogEvent {
     private boolean commitFlag;
     private byte[] sid;

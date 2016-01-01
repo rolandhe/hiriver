@@ -12,12 +12,28 @@ import com.hiriver.unbiz.mysql.lib.protocol.binlog.ValidBinlogOutput;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.exp.ReadTimeoutExp;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.extra.BinlogPosition;
 
+/**
+ * 支持HA的{@link StreamSource}实现，它可以根据{@link StreamSourceSelector}策略选择一个物理数据源并使用它获取binlog数据。
+ * 当与mysql断开重连后，它会先试图连接断开的数据源，失败后再连接其他数据源
+ * 
+ * @author hexiufeng
+ *
+ */
 public class HAStreamSource implements StreamSource {
     private static final Logger LOG = LoggerFactory.getLogger(HAStreamSource.class);
 
+    /**
+     * 备选数据源
+     */
     private List<StreamSource> haStreamSourceList;
+    /**
+     * 数据源选择策略
+     */
     private StreamSourceSelector sourceSelector = new RandomStreamSourceSelector();
 
+    /**
+     * 记录当前使用的数据源
+     */
     private StreamSource currentStreamSource;
 
     public List<StreamSource> getHaStreamSourceList() {
@@ -57,6 +73,12 @@ public class HAStreamSource implements StreamSource {
         throw new RuntimeException("it is not supported.");
     }
 
+    /**
+     * 试图使用当前的数据源
+     * 
+     * @param binlogPos 指定的同步点
+     * @return 连接好的数据源
+     */
     private StreamSource tryOpenStream(final BinlogPosition binlogPos) {
         if (currentStreamSource != null) {
             currentStreamSource.release();

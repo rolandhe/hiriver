@@ -1,7 +1,7 @@
 package com.hiriverunbiz.mysql.lib.exp;
 
 /**
- * 锟斤拷锟截碉拷锟斤拷应锟斤拷莶锟斤拷锟斤拷锟斤拷锟斤拷蔚锟斤拷锟斤拷锟届常锟斤拷
+ * binlog事件中不合法的有效负载异常
  * 
  * @author hexiufeng
  *

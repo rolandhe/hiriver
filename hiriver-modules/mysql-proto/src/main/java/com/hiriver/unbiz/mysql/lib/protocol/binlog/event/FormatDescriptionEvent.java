@@ -5,6 +5,12 @@ import com.hiriver.unbiz.mysql.lib.protocol.binlog.BinlogEvent;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlNumberUtils;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlStringUtils;
 
+/**
+ * mysql binlog格式描述事件，在mysql开始dump指令后，第二个发送的事件，一次dump指令只发送一次该事件，第一个事件是Rotate event
+ * 
+ * @author hexiufeng
+ *
+ */
 public class FormatDescriptionEvent extends AbstractBinlogEvent implements BinlogEvent {
 
     private int binlogVersion; // 2 bytes

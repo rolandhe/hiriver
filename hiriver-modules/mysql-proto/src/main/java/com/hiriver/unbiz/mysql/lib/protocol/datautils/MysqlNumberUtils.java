@@ -16,10 +16,24 @@ public class MysqlNumberUtils {
     private MysqlNumberUtils() {
     }
 
+    /**
+     * 读取1个字节的整数
+     * 
+     * @param buf
+     * @param off
+     * @return
+     */
     public static int read1Int(byte[] buf, Position off) {
         return leftShiftByte2int(buf[off.getAndForwordPos()]);
     }
 
+    /**
+     * 读取2个字节的整数
+     * 
+     * @param buf
+     * @param off
+     * @return
+     */
     public static int read2Int(byte[] buf, Position off) {
         int value = 0;
         value |= leftShiftByte2int(buf[off.getAndForwordPos()]);
@@ -27,6 +41,13 @@ public class MysqlNumberUtils {
         return value;
     }
 
+    /**
+     * 读取3个字节的整数
+     * 
+     * @param buf
+     * @param off
+     * @return
+     */
     public static int read3Int(byte[] buf, Position off) {
         int value = 0;
         value |= leftShiftByte2int(buf[off.getAndForwordPos()]);
@@ -35,6 +56,13 @@ public class MysqlNumberUtils {
         return value;
     }
 
+    /**
+     * 读取4个字节的整数
+     * 
+     * @param buf
+     * @param off
+     * @return
+     */
     public static int read4Int(byte[] buf, Position off) {
         int value = 0;
         value |= leftShiftByte2int(buf[off.getAndForwordPos()]);
@@ -44,14 +72,36 @@ public class MysqlNumberUtils {
         return value;
     }
 
+    /**
+     * 读取6个字节的整数
+     * 
+     * @param buf
+     * @param off
+     * @return
+     */
     public static long read6Int(byte[] buf, Position off) {
         return readNInt(buf, off, 6);
     }
 
+    /**
+     * 读取8个字节的整数
+     * 
+     * @param buf
+     * @param off
+     * @return
+     */
     public static long read8Int(byte[] buf, Position off) {
         return readNInt(buf, off, 8);
     }
 
+    /**
+     * 读取指定长度字节的整数
+     * 
+     * @param buf
+     * @param off
+     * @param len
+     * @return
+     */
     public static int readNRawInt(byte[] buf, Position off, int len) {
         int value = 0;
         for (int i = 0; i < len; i++) {
@@ -64,6 +114,14 @@ public class MysqlNumberUtils {
         return value;
     }
 
+    /**
+     * 读取指定长度字节的整数，返回long
+     * 
+     * @param buf
+     * @param off
+     * @param len
+     * @return
+     */
     public static long readNInt(byte[] buf, Position off, int len) {
         long value = 0;
         for (int i = 0; i < len; i++) {
@@ -72,6 +130,14 @@ public class MysqlNumberUtils {
         return value;
     }
 
+    /**
+     * 读取大端长整形整数
+     * 
+     * @param buf
+     * @param off
+     * @param len
+     * @return
+     */
     public static long readBigEdianNInt(byte[] buf, Position off, int len) {
         long value = 0;
         for (int i = len - 1; i >= 0; i--) {
@@ -80,6 +146,13 @@ public class MysqlNumberUtils {
         return value;
     }
 
+    /**
+     * 读取mysql长度自编码的long
+     * 
+     * @param buf
+     * @param off
+     * @return
+     */
     public static long readLencodeLong(byte[] buf, Position off) {
         int flag = buf[off.getAndForwordPos()] & 0xff;
         if (flag < 0xfb) {
@@ -97,10 +170,23 @@ public class MysqlNumberUtils {
         throw new InvalidMysqlDataException("invalid lencode");
     }
 
+    /**
+     * 转换int数据成4个字节，小端
+     * 
+     * @param value
+     * @return
+     */
     public static byte[] write4Int(int value) {
         return writeNInt(value, 4);
     }
 
+    /**
+     * 转换int数据成指定长度字节，小端
+     * 
+     * @param value
+     * @param len
+     * @return
+     */
     public static byte[] writeNInt(int value, int len) {
         byte[] buf = new byte[len];
         for (int i = 0; i < len; i++) {
@@ -109,6 +195,13 @@ public class MysqlNumberUtils {
         return buf;
     }
 
+    /**
+     * 转换long数据成指定长度的字节，小端
+     * 
+     * @param value
+     * @param len
+     * @return
+     */
     public static byte[] writeNLong(long value, int len) {
         byte[] buf = new byte[len];
         for (int i = 0; i < len; i++) {
@@ -117,6 +210,12 @@ public class MysqlNumberUtils {
         return buf;
     }
 
+    /**
+     * 转换long数据为mysql自编码长度的字节
+     * 
+     * @param value
+     * @return
+     */
     public static byte[] wirteLencodeLong(long value) {
         if (value < 0xfbL) {
             return new byte[] { (byte) value };
@@ -137,7 +236,13 @@ public class MysqlNumberUtils {
         return buffer;
     }
     
-
+    /**
+     * 从数组中读取自编码数字，一般用于读取后续的字节
+     * 
+     * @param buf
+     * @param off
+     * @return
+     */
     public static int getLencodeLen(byte[] buf, Position off) {
         int flag = buf[off.getPos()] & 0xff;
         if (flag < 0xfb) {
@@ -155,6 +260,13 @@ public class MysqlNumberUtils {
         throw new InvalidMysqlDataException("invalid lencode");
     }
 
+    /**
+     * 转换long类型为指定长度的大端字节
+     * 
+     * @param value
+     * @param len
+     * @return
+     */
     public static byte[] writeBigEdianNInt(long value, int len) {
         byte[] buf = new byte[len];
         for (int i = len - 1; i >= 0; i--) {
@@ -163,6 +275,13 @@ public class MysqlNumberUtils {
         return buf;
     }
 
+    /**
+     * 判断数据是否以有效的自编码数据开始
+     * 
+     * @param buf
+     * @param off
+     * @return
+     */
     public static boolean isValidLencodeLong(byte[] buf, Position off) {
         int flag = buf[off.getPos()] & 0xff;
         int restLen = buf.length - off.getPos();
@@ -185,6 +304,13 @@ public class MysqlNumberUtils {
         return leftShiftByte2int(byteValue, 0);
     }
 
+    /**
+     * 无符号向左位移指定的位数，返回int
+     * 
+     * @param byteValue
+     * @param bitCount
+     * @return
+     */
     public static int leftShiftByte2int(byte byteValue, int bitCount) {
         return (byteValue & 0xff) << bitCount;
     }
@@ -193,6 +319,13 @@ public class MysqlNumberUtils {
         return leftShiftByte2int(byteValue, 0);
     }
 
+    /**
+     * 无符号向左位移指定的位数，返回long
+     * 
+     * @param byteValue
+     * @param bitCount
+     * @return
+     */
     public static long leftShiftByte2long(byte byteValue, int bitCount) {
         return (byteValue & 0xffL) << bitCount;
     }

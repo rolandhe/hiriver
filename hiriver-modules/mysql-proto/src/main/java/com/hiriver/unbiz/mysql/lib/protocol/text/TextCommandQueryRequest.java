@@ -3,6 +3,12 @@ package com.hiriver.unbiz.mysql.lib.protocol.text;
 import com.hiriver.unbiz.mysql.lib.protocol.tool.SafeByteArrayOutputStream;
 import com.hiriver.unbiz.mysql.lib.protocol.tool.StringTool;
 
+/**
+ * COM_QUERY指令实现，用于执行sql
+ * 
+ * @author hexiufeng
+ *
+ */
 public class TextCommandQueryRequest extends AbstractTextCommandRequest {
     private String query;
 

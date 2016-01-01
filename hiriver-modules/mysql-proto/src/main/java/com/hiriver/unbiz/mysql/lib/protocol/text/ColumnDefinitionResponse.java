@@ -11,6 +11,12 @@ import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlNumberUtils;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlStringUtils;
 import com.hiriver.unbiz.mysql.lib.protocol.tool.StringTool;
 
+/**
+ * 文本协议，返回列定义的reponse对象，对应{@link TextCommandFieldListRequest}的响应信息
+ * 
+ * @author hexiufeng
+ *
+ */
 public class ColumnDefinitionResponse extends AbstractResponse implements Response {
     private String catalog;
     private String schema;

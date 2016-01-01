@@ -3,6 +3,12 @@ package com.hiriver.unbiz.mysql.lib.protocol.text;
 import com.hiriver.unbiz.mysql.lib.MyCharset;
 import com.hiriver.unbiz.mysql.lib.protocol.tool.StringTool;
 
+/**
+ * 支持文本协议的列数据解析提供者。{@link ColumnValueProvider}实现
+ * 
+ * @author hexiufeng
+ *
+ */
 class TextColumnValueProvider implements ColumnValueProvider {
     private final byte[] binValue;
     private MyCharset charset = MyCharset.UTF8;

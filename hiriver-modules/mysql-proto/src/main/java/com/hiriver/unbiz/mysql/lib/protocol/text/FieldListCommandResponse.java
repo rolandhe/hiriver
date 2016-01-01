@@ -8,6 +8,12 @@ import com.hiriver.unbiz.mysql.lib.protocol.AbstractResponse;
 import com.hiriver.unbiz.mysql.lib.protocol.Response;
 import com.hiriver.unbiz.mysql.lib.protocol.tool.PacketTool;
 
+/**
+ * 描述COM_FIELD_LIST指令的返回结果，返回表的列定义
+ * 
+ * @author hexiufeng
+ *
+ */
 public class FieldListCommandResponse extends AbstractResponse implements Response {
     private List<ColumnDefinitionResponse> columnList = new ArrayList<ColumnDefinitionResponse>(32);
 

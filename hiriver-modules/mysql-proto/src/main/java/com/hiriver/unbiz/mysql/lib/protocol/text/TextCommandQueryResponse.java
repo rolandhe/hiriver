@@ -11,6 +11,12 @@ import com.hiriver.unbiz.mysql.lib.protocol.Response;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlNumberUtils;
 import com.hiriver.unbiz.mysql.lib.protocol.tool.PacketTool;
 
+/**
+ * COM_QUERY指令的返回结果
+ * 
+ * @author hexiufeng
+ *
+ */
 public class TextCommandQueryResponse extends AbstractResponse implements Response {
     private int columnCount;
     private List<ColumnDefinitionResponse> columnList = new ArrayList<ColumnDefinitionResponse>(32);

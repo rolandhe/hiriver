@@ -7,6 +7,12 @@ import com.hiriver.unbiz.mysql.lib.output.ColumnDefinition;
 import com.hiriver.unbiz.mysql.lib.protocol.Position;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlStringUtils;
 
+/**
+ * float数据类型解析器
+ * 
+ * @author hexiufeng
+ *
+ */
 public class FloatColumnTypeValueParser implements ColumnTypeValueParser {
 
     @Override

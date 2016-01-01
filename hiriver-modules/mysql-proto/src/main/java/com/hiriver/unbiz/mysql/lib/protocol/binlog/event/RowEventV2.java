@@ -6,6 +6,12 @@ import com.hiriver.unbiz.mysql.lib.protocol.binlog.TableMetaProvider;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlNumberUtils;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlStringUtils;
 
+/**
+ * 行事件，版本2
+ * 
+ * @author hexiufeng
+ *
+ */
 public class RowEventV2 extends RowEventV1 implements BinlogEvent {
 
     public RowEventV2(TableMapEvent tableMapEvent, TableMetaProvider tableMetaProvider, int eventType,

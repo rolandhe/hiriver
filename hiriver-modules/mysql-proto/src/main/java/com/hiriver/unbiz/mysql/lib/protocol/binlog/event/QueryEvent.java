@@ -5,6 +5,12 @@ import com.hiriver.unbiz.mysql.lib.protocol.binlog.BinlogEvent;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlNumberUtils;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlStringUtils;
 
+/**
+ * 执行sql语句的事件，在binlog中一般保持开启、提交、回滚事件和ddl
+ * 
+ * @author hexiufeng
+ *
+ */
 public class QueryEvent extends AbstractBinlogEvent implements BinlogEvent {
     private int slaveProxyId;
     private int executionTime;

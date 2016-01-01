@@ -8,7 +8,7 @@ import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlStringUtils;
 import com.hiriver.unbiz.mysql.lib.protocol.tool.StringTool;
 
 /**
- * blob or text
+ * blob or text，text和 blob在底层存储是相同的，只是blob类型的字符集是binary，而text类型有utf-8或者其他字符集
  * 
  * @author hexiufeng
  * 

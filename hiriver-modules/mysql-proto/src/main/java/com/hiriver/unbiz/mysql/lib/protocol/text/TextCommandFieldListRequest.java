@@ -3,6 +3,12 @@ package com.hiriver.unbiz.mysql.lib.protocol.text;
 import com.hiriver.unbiz.mysql.lib.protocol.tool.SafeByteArrayOutputStream;
 import com.hiriver.unbiz.mysql.lib.protocol.tool.StringTool;
 
+/**
+ * COM_FIELD_LIST指令实现，用于获取表的列定义
+ * 
+ * @author hexiufeng
+ *
+ */
 public class TextCommandFieldListRequest extends AbstractTextCommandRequest {
     private String table; // string.nul
     private String fieldWildcard; // string.eof

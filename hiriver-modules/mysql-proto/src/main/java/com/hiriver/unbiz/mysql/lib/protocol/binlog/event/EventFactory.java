@@ -4,6 +4,12 @@ import com.hiriver.unbiz.mysql.lib.protocol.binlog.BinlogContext;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.BinlogEvent;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.BinlogEventType;
 
+/**
+ * 根据事件类型产生事件对象的工厂
+ * 
+ * @author hexiufeng
+ *
+ */
 public class EventFactory {
     public static BinlogEvent factory(final int eventType, final long binlogEventPos, final BinlogContext context,
             boolean hasCheckSum) {

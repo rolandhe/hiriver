@@ -12,6 +12,12 @@ import com.hiriver.unbiz.mysql.lib.protocol.binlog.exp.InvalidColumnType;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlNumberUtils;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlStringUtils;
 
+/**
+ * tablemapevent，描述表的元数据
+ * 
+ * @author hexiufeng
+ *
+ */
 public class TableMapEvent extends AbstractBinlogEvent implements BinlogEvent {
     private final FormatDescriptionEvent formatDescriptionEvent;
 

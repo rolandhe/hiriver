@@ -6,6 +6,12 @@ import com.hiriver.unbiz.mysql.lib.output.ColumnDefinition;
 import com.hiriver.unbiz.mysql.lib.protocol.Position;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlNumberUtils;
 
+/**
+ * timestamp类型解析器
+ * 
+ * @author hexiufeng
+ *
+ */
 public class TimeStampColumnTypeValueParser implements ColumnTypeValueParser {
 
     @Override

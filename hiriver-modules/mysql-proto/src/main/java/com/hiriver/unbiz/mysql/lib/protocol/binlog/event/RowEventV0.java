@@ -9,6 +9,12 @@ import com.hiriver.unbiz.mysql.lib.protocol.binlog.BinlogEvent;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.TableMeta;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.TableMetaProvider;
 
+/**
+ * 行事件，版本0
+ * 
+ * @author hexiufeng
+ *
+ */
 public class RowEventV0 extends BaseRowEvent implements BinlogEvent {
 
     public RowEventV0(TableMapEvent tableMapEvent, TableMetaProvider tableMetaProvider, int eventType,
@@ -18,7 +24,7 @@ public class RowEventV0 extends BaseRowEvent implements BinlogEvent {
 
     @Override
     protected void parseVerPostHeader(byte[] buf, Position pos) {
-
+        pos.forwardPos(2);
     }
 
     @Override

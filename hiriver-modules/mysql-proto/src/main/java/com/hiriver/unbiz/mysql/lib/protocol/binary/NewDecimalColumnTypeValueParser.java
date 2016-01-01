@@ -6,6 +6,12 @@ import com.hiriver.unbiz.mysql.lib.output.ColumnDefinition;
 import com.hiriver.unbiz.mysql.lib.protocol.Position;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlStringUtils;
 
+/**
+ * decimal 数据类型解析器，mysql binlog中对decimal的处理非常复杂，该逻辑来自mysql源码中的 decimal.c
+ * 
+ * @author hexiufeng
+ *
+ */
 public class NewDecimalColumnTypeValueParser implements ColumnTypeValueParser {
 
     @Override

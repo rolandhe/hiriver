@@ -5,6 +5,13 @@ import java.util.Map;
 
 import com.hiriver.unbiz.mysql.lib.ColumnType;
 
+/**
+ * 根据列的数据类型获取对应的解析器。<br>
+ * <p> 为了提高性能，每种类型的解析器被缓存到内存</p>
+ * 
+ * @author hexiufeng
+ *
+ */
 public class ColumnTypeValueParserFactory {
     private static final Map<ColumnType, ColumnTypeValueParser> CACHE;
     private static final ColumnTypeValueParser UNSUPPORT = new UnsupportColumnTypeValueParser();

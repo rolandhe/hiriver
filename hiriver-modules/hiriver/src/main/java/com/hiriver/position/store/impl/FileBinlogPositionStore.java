@@ -14,6 +14,12 @@ import org.slf4j.LoggerFactory;
 
 import com.hiriver.position.store.BinlogPositionStore;
 
+/**
+ * 基于文件的同步点存储实现
+ * 
+ * @author hexiufeng
+ *
+ */
 public class FileBinlogPositionStore extends AbstractBinlogPositionStore implements BinlogPositionStore {
     private static final Logger LOG = LoggerFactory.getLogger(FileBinlogPositionStore.class);
     private static final int MAX_BUFFER = 2048;

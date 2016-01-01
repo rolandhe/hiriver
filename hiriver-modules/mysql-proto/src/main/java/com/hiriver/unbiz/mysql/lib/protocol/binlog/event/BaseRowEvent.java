@@ -24,10 +24,19 @@ import com.hiriver.unbiz.mysql.lib.protocol.binlog.exp.TableAlreadyModifyExp;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlNumberUtils;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlStringUtils;
 
+/**
+ * 基础的、抽象的mysql binlog row事件，用于解析出具体的数据
+ * 
+ * @author hexiufeng
+ *
+ */
 public abstract class BaseRowEvent extends AbstractBinlogEvent implements BinlogEvent {
     private static final Logger LOG = LoggerFactory.getLogger(BaseRowEvent.class);
 
     protected final int eventType;
+    /**
+     * 该事件所对应表的元数据描述，mysql server发送row事件数据之前要先发送该事件
+     */
     protected final TableMapEvent tableMapEvent;
     protected final TableMetaProvider tableMetaProvider;
     protected final List<BinlogResultRow> rowList = new LinkedList<BinlogResultRow>();
@@ -53,10 +62,29 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
         this.eventType = eventType;
     }
 
+    /**
+     * 解析子事件头数据
+     * 
+     * @param buf 已经读取到的事件数据
+     * @param pos 位置控制器
+     */
     protected abstract void parseVerPostHeader(byte[] buf, Position pos);
 
+    /**
+     * 解析update事件的主数据，不同的版本有不同的解析方式
+     * 
+     * @param buf 已经读取到的事件数据
+     * @param pos 位置控制器
+     */
     protected abstract void parseVerBodyForUpdate(byte[] buf, Position pos);
 
+    /**
+     * 解析update事件的修改之前的数据，不同的版本有不同的解析方式
+     * 
+     * @param buf 已经读取到的事件数据
+     * @param tableMeta
+     * @return
+     */
     protected abstract List<BinlogColumnValue> parseVerRowForUpdate(byte[] buf, Position pos, TableMeta tableMeta);
 
     protected final boolean isUpdate() {

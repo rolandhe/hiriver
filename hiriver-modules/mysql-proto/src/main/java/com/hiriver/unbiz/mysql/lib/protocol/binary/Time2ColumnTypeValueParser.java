@@ -6,6 +6,12 @@ import com.hiriver.unbiz.mysql.lib.output.ColumnDefinition;
 import com.hiriver.unbiz.mysql.lib.protocol.Position;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlNumberUtils;
 
+/**
+ * time2类型解析器，它返回java Date类型，代码逻辑来自mysql源码
+ * 
+ * @author hexiufeng
+ *
+ */
 public class Time2ColumnTypeValueParser implements ColumnTypeValueParser {
     private static final long TIMEF_INT_OFS = 0x800000L;
     private static final long TIMEF_OFS = 0x800000000000L;

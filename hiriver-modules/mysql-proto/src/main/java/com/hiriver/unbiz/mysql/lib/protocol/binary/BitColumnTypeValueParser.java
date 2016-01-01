@@ -4,6 +4,12 @@ import com.hiriver.unbiz.mysql.lib.output.ColumnDefinition;
 import com.hiriver.unbiz.mysql.lib.protocol.Position;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlNumberUtils;
 
+/**
+ * bit类型的数据解析器
+ * 
+ * @author hexiufeng
+ *
+ */
 public class BitColumnTypeValueParser implements ColumnTypeValueParser {
 
     @Override

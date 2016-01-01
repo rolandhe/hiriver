@@ -9,6 +9,12 @@ import com.hiriver.unbiz.mysql.lib.protocol.Response;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlNumberUtils;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlStringUtils;
 
+/**
+ * COM_QUERY指令返回结果中行数据部分描述
+ * 
+ * @author hexiufeng
+ *
+ */
 public class ResultsetRowResponse extends AbstractResponse implements Response {
     private List<ColumnValue> valueList;
     private final List<ColumnDefinitionResponse> columnList;
@@ -29,6 +35,13 @@ public class ResultsetRowResponse extends AbstractResponse implements Response {
         }
     }
 
+    /**
+     * 解析每一列的数据
+     * 
+     * @param buf 二进制数据
+     * @param column 列的index
+     * @return 列值
+     */
     private ColumnValue parseColumn(byte[] buf, int column) {
         Position pos = Position.factory();
         if ((buf[pos.getPos()] & 0xff) == 0xfb) {

@@ -8,6 +8,13 @@ import com.hiriver.unbiz.mysql.lib.output.ColumnDefinition;
 import com.hiriver.unbiz.mysql.lib.protocol.Position;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlNumberUtils;
 
+/**
+ * mysql bigint类型的解析器，如果该字段是unsigned，返回的是BigInteger
+ * 
+ * 
+ * @author hexiufeng
+ *
+ */
 public class LongColumnTypeValueParser implements ColumnTypeValueParser {
 
     @Override

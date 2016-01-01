@@ -3,6 +3,12 @@ package com.hiriver.unbiz.mysql.lib.protocol.text;
 import com.hiriver.unbiz.mysql.lib.MyCharset;
 import com.hiriver.unbiz.mysql.lib.output.ColumnDefinition;
 
+/**
+ * 描述列的值
+ * 
+ * @author hexiufeng
+ *
+ */
 public class ColumnValue {
     private final ColumnValueProvider provider;
     private final ColumnDefinition definition;
