@@ -43,6 +43,11 @@ public final class BinlogDataSet {
      * 
      */
     private final boolean isPositionStoreTrigger;
+    
+    /**
+     * 事务是否结束
+     */
+    private final boolean isStartTransEvent;
 
     /**
      * 描述表对应的列信息，key 是表名称，dbname.tablename格式
@@ -54,18 +59,23 @@ public final class BinlogDataSet {
     private final Map<String, List<BinlogResultRow>> rowDataMap = new LinkedHashMap<>();
 
     public static BinlogDataSet createPositionStoreTrigger(String channelId, String sourceHostUrl, String gtId) {
-        return new BinlogDataSet(channelId, sourceHostUrl, gtId, true);
+        return new BinlogDataSet(channelId, sourceHostUrl, gtId, true,false);
+    }
+    
+    public static BinlogDataSet createStartTransEvent(String channelId, String sourceHostUrl, String gtId) {
+        return new BinlogDataSet(channelId, sourceHostUrl, gtId, false,true);
     }
 
     public BinlogDataSet(String channelId, String sourceHostUrl, String gtId) {
-        this(channelId, sourceHostUrl, gtId, false);
+        this(channelId, sourceHostUrl, gtId, false,false);
     }
 
-    private BinlogDataSet(String channelId, String sourceHostUrl, String gtId, boolean isPositionStoreTrigger) {
+    private BinlogDataSet(String channelId, String sourceHostUrl, String gtId, boolean isPositionStoreTrigger, boolean isStartTransEvent) {
         this.channelId = channelId;
         this.sourceHostUrl = sourceHostUrl;
         this.gtId = gtId;
         this.isPositionStoreTrigger = isPositionStoreTrigger;
+        this.isStartTransEvent = isStartTransEvent;
     }
 
     public String getChannelId() {
@@ -90,5 +100,9 @@ public final class BinlogDataSet {
 
     public boolean getIsPositionStoreTrigger() {
         return isPositionStoreTrigger;
+    }
+
+    public boolean isStartTransEvent() {
+        return isStartTransEvent;
     }
 }

@@ -18,6 +18,9 @@ public abstract class AbstractConsumer implements Consumer {
             storeTrigger.triggerStoreBinlogPos();
             return;
         }
+        if(ds.isStartTransEvent()){
+            return;
+        }
         consumerRowData(ds);
     }
     /**

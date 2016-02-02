@@ -248,6 +248,12 @@ public class DefaultChannelStream implements ChannelStream {
                 continue;
             }
             if (transactionRecognizer.isStart(validOutput)) {
+                
+                
+                BinlogDataSet ds = BinlogDataSet.createStartTransEvent(this.channelId, streamSource.getHostUrl(),
+                        transactionRecognizer.getGTId());
+                ensureDispatch(new DefaultBufferableBinlogDataSet(ds));
+                
                 LOG.info("{},start trans {}", this.channelId, transactionRecognizer.getCurrentTransBeginPos());
             }
             if (transactionRecognizer.tryRecognizePos(validOutput)) {
