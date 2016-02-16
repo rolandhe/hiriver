@@ -38,6 +38,16 @@ public class ColumnDefinition {
      * 是否索引字段
      */
     private boolean isKey;
+    
+    private int len;
+
+    public int getLen() {
+        return len;
+    }
+
+    public void setLen(int len) {
+        this.len = len;
+    }
 
     public String getColumName() {
         return columName;

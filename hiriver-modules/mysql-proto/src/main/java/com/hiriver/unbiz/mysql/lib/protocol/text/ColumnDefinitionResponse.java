@@ -82,6 +82,7 @@ public class ColumnDefinitionResponse extends AbstractResponse implements Respon
         def.setCharset(this.charset);
         def.setColumName(this.name);
         def.setType(this.type);
+        def.setLen(this.columnLength);
         return def;
     }
 

@@ -59,7 +59,8 @@ public class TableMapEvent extends AbstractBinlogEvent implements BinlogEvent {
 
         this.columnTypeDef = MysqlStringUtils.readFixString(buf, pos, columnCount);
 
-        this.columnMetaDef = MysqlStringUtils.readFixString(buf, pos, (int) MysqlNumberUtils.readLencodeLong(buf, pos));
+        int metaLen = (int) MysqlNumberUtils.readLencodeLong(buf, pos);
+        this.columnMetaDef = MysqlStringUtils.readFixString(buf, pos, metaLen);
         this.nullBitmap = MysqlStringUtils.readFixString(buf, pos, (columnCount + 7) / 8);
 
         createColumnDefList();

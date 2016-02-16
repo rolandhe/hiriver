@@ -118,6 +118,7 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
             def.setType(coldef.getType());
             def.setUnique(coldef.isUniqueKey());
             def.setUnsigned(coldef.isUnsigned());
+            def.setLen(coldef.getColumnLength());
             return def;
         }
 
