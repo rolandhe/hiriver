@@ -95,7 +95,7 @@ public class TableMapEvent extends AbstractBinlogEvent implements BinlogEvent {
                     }
                 }
             }
-            boolean isNull = (nullBitmap[columnCount / 8] & (1 << (columnCount % 8))) != 0;
+            boolean isNull = (nullBitmap[i / 8] & (1 << (i % 8))) != 0;
             columnDefList.add(new InternelColumnDefinition(type, meta, isNull));
         }
     }
