@@ -26,7 +26,7 @@ public class LongColumnTypeValueParser implements ColumnTypeValueParser {
             bbf.putLong(value);
             return new BigInteger(bbf.array());
         } else {
-            return Long.valueOf((int) value);
+            return Long.valueOf(value);
         }
     }
 
