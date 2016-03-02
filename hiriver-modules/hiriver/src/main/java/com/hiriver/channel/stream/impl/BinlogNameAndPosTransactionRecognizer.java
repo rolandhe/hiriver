@@ -17,7 +17,7 @@ public class BinlogNameAndPosTransactionRecognizer extends AbstractTransactionRe
 
     @Override
     public boolean isStart(ValidBinlogOutput validOutput) {
-        boolean start = super.isEnd(validOutput);
+        boolean start = super.isStart(validOutput);
         if (start) {
             position = new BinlogFileBinlogPosition(validOutput.getBinlogFileName(),
                     validOutput.getEvent().getBinlogEventPos());
