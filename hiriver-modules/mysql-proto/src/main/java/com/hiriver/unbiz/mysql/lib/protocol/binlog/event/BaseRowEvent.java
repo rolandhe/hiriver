@@ -113,6 +113,8 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
             tableId = MysqlNumberUtils.read6Int(buf, pos);
         }
 
+        pos.forwardPos(2);
+        
         parseVerPostHeader(buf, pos);
         columnCount = (int) MysqlNumberUtils.readLencodeLong(buf, pos);
         if (this.tableMapEvent.getColumnCount() < columnCount) {
@@ -129,7 +131,11 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
         TableMeta tableMeta =
                 tableMetaProvider.getTableMeta(tableId, tableMapEvent.getSchema(), tableMapEvent.getTableName());
         List<BinlogColumnValue> nullList = Collections.emptyList();
-        while (pos.getPos() < buf.length) {
+        int maxLen = buf.length;
+        if (super.isHasCheckSum()) {
+            maxLen -= 4;
+        }
+        while (pos.getPos() <  maxLen) {
             if (isUpdate()) {
                 rowList.add(new BinlogResultRow(parseRow(columnsNotNullBitmap, buf, pos, tableMeta),
                         parseVerRowForUpdate(buf, pos, tableMeta), RowModifyTypeEnum.UPDATE));
@@ -142,9 +148,10 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
                 rowList.add(new BinlogResultRow(parseRow(columnsNotNullBitmap, buf, pos, tableMeta), nullList,
                         RowModifyTypeEnum.DELETE));
             }
-            if (super.isHasCheckSum()) {
-                pos.forwardPos(4);
-            }
+            
+        }
+        if (super.isHasCheckSum()) {
+            pos.forwardPos(4);
         }
     }
 

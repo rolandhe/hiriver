@@ -22,7 +22,6 @@ public class RowEventV2 extends RowEventV1 implements BinlogEvent {
     @Override
     protected void parseVerPostHeader(byte[] buf, Position pos) {
         int len = MysqlNumberUtils.read2Int(buf, pos);
-        MysqlStringUtils.readFixString(buf, pos, len);
-        pos.forwardPos();
+        MysqlStringUtils.readFixString(buf, pos, len - 2);
     }
 }

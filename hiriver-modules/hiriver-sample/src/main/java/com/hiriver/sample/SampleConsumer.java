@@ -41,7 +41,6 @@ public class SampleConsumer extends AbstractConsumer implements Consumer {
             }
             LOG.info("=======end table:" + tb + "=======");
         }
-
     }
 
     private void outputRow(List<BinlogColumnValue> rowValues) {

@@ -21,9 +21,9 @@ public class IntegerColumnTypeValueParser implements ColumnTypeValueParser {
     public Object parse(byte[] buf, Position pos, ColumnDefinition columnDef, int meta) {
         if (columnDef.isUnsigned()) {
             long value = MysqlNumberUtils.readNInt(buf, pos, len);
-            if (len <= 4 && value <= Integer.MAX_VALUE) {
-                return Integer.valueOf((int) value);
-            }
+//            if (len <= 4 && value <= Integer.MAX_VALUE) {
+//                return Integer.valueOf((int) value);
+//            }
             return Long.valueOf(value);
         } else {
             int value = MysqlNumberUtils.readNRawInt(buf, pos, len);
