@@ -202,8 +202,9 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
                 if (columnValueList.size() > 0) {
                     firstValue = columnValueList.get(0);
                 }
-                LOG.info("invalid string value:{},{},{}--{}", tableMapEvent.getTableName(), columnDef.getColumName(),
-                        columnDef.getCharset().getCharsetName(), firstValue);
+                LOG.info("invalid string value:{},{},{}--{}--{}", tableMapEvent.getTableName(),
+                        columnDef.getColumName(), typeInBinlog.getTypeValue(), columnDef.getCharset().getCharsetName(),
+                        firstValue);
                 throw e;
             }
             return;
