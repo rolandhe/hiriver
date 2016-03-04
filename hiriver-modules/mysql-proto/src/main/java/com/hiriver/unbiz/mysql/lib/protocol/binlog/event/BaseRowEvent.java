@@ -194,23 +194,9 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
             ColumnDefinition columnDef, int meta, ColumnType typeInBinlog) {
         LOG.info("start parse column.");
         if (typeInBinlog != ColumnType.MYSQL_TYPE_STRING) {
-            columnValueList.add(new BinlogColumnValue(columnDef,
-                    ColumnTypeValueParserFactory.factory(typeInBinlog).parse(buf, pos, columnDef, meta)));
-            return;
-        }
-        int[] lengthHolder = { 0 };
-        ColumnType realType = null;
-        try {
-            realType = prepareForTypeString(meta, lengthHolder);
-        } catch (InvalidColumnType e) {
-
-            LOG.info("{},{}", tableMapEvent.getTableName(), columnDef.getColumName());
-            throw e;
-        }
-        if (realType == ColumnType.MYSQL_TYPE_STRING) {
             try {
                 columnValueList.add(new BinlogColumnValue(columnDef,
-                        ColumnTypeValueParserFactory.factory(realType).parse(buf, pos, columnDef, lengthHolder[0])));
+                        ColumnTypeValueParserFactory.factory(typeInBinlog).parse(buf, pos, columnDef, meta)));
             } catch (RuntimeException e) {
                 BinlogColumnValue firstValue = null;
                 if (columnValueList.size() > 0) {
@@ -220,6 +206,19 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
                         columnDef.getCharset().getCharsetName(), firstValue);
                 throw e;
             }
+            return;
+        }
+        int[] lengthHolder = { 0 };
+        ColumnType realType = null;
+        try {
+            realType = prepareForTypeString(meta, lengthHolder);
+        } catch (InvalidColumnType e) {
+            LOG.info("{},{}", tableMapEvent.getTableName(), columnDef.getColumName());
+            throw e;
+        }
+        if (realType == ColumnType.MYSQL_TYPE_STRING) {
+            columnValueList.add(new BinlogColumnValue(columnDef,
+                    ColumnTypeValueParserFactory.factory(realType).parse(buf, pos, columnDef, lengthHolder[0])));
             return;
         }
 
