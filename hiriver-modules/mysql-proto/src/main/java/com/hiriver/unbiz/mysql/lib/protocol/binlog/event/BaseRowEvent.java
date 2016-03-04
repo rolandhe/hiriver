@@ -114,7 +114,7 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
         }
 
         pos.forwardPos(2);
-        
+
         parseVerPostHeader(buf, pos);
         columnCount = (int) MysqlNumberUtils.readLencodeLong(buf, pos);
         if (this.tableMapEvent.getColumnCount() < columnCount) {
@@ -135,7 +135,7 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
         if (super.isHasCheckSum()) {
             maxLen -= 4;
         }
-        while (pos.getPos() <  maxLen) {
+        while (pos.getPos() < maxLen) {
             if (isUpdate()) {
                 rowList.add(new BinlogResultRow(parseRow(columnsNotNullBitmap, buf, pos, tableMeta),
                         parseVerRowForUpdate(buf, pos, tableMeta), RowModifyTypeEnum.UPDATE));
@@ -148,7 +148,7 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
                 rowList.add(new BinlogResultRow(parseRow(columnsNotNullBitmap, buf, pos, tableMeta), nullList,
                         RowModifyTypeEnum.DELETE));
             }
-            
+
         }
         if (super.isHasCheckSum()) {
             pos.forwardPos(4);
@@ -207,8 +207,17 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
             throw e;
         }
         if (realType == ColumnType.MYSQL_TYPE_STRING) {
-            columnValueList.add(new BinlogColumnValue(columnDef,
-                    ColumnTypeValueParserFactory.factory(realType).parse(buf, pos, columnDef, lengthHolder[0])));
+            try {
+                columnValueList.add(new BinlogColumnValue(columnDef,
+                        ColumnTypeValueParserFactory.factory(realType).parse(buf, pos, columnDef, lengthHolder[0])));
+            } catch (RuntimeException e) {
+                BinlogColumnValue firstValue = null;
+                if (columnValueList.size() > 0) {
+                    firstValue = columnValueList.get(0);
+                }
+                LOG.info("invalid string value:{},{},{}--{}", tableMapEvent.getTableName(), columnDef.getColumName(),
+                        columnDef.getCharset().getCharsetName(), firstValue);
+            }
             return;
         }
 
