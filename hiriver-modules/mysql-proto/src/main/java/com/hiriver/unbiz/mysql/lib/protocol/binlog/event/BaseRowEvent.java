@@ -192,7 +192,6 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
 
     private void parseEachColumnOfRow(byte[] buf, Position pos, final List<BinlogColumnValue> columnValueList,
             ColumnDefinition columnDef, int meta, ColumnType typeInBinlog) {
-        LOG.info("start parse column.");
         if (typeInBinlog != ColumnType.MYSQL_TYPE_STRING) {
             try {
                 columnValueList.add(new BinlogColumnValue(columnDef,

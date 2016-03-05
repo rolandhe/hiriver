@@ -34,7 +34,7 @@ public class DateTime2ColumnTypeValueParser implements ColumnTypeValueParser {
 
         Calendar cal = Calendar.getInstance();
 
-        cal.set(year, month, day, hour, minute, second);
+        cal.set(year, month - 1, day, hour, minute, second);
         return cal.getTime();
     }
 
