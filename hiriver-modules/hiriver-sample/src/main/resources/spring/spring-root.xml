@@ -30,6 +30,7 @@
     <bean id="tableFilter"
         class="com.hiriver.unbiz.mysql.lib.filter.impl.BlackWhiteNameListTableFilter">
         <property name="tableWhite" value="${table.white}"></property>
+        <property name="tableBlack" value="${table.black}"></property>
     </bean>
 
     

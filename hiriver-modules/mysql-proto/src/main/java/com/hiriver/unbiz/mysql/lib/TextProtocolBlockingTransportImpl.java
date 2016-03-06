@@ -3,6 +3,7 @@ package com.hiriver.unbiz.mysql.lib;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hiriver.unbiz.mysql.lib.protocol.ERRPacket;
 import com.hiriver.unbiz.mysql.lib.protocol.OKPacket;
 import com.hiriver.unbiz.mysql.lib.protocol.Response;
 import com.hiriver.unbiz.mysql.lib.protocol.text.FieldListCommandResponse;
@@ -83,6 +84,13 @@ public class TextProtocolBlockingTransportImpl extends AbstractBlockingTransport
         super.writeRequest(fieldListRequest);
         byte[] buffer = super.readResponsePayload();
         FieldListCommandResponse response = new FieldListCommandResponse(resultContentReader);
+        
+        if(PacketTool.isErrPackete(buffer)){
+            ERRPacket ep = new ERRPacket();
+            ep.parse(buffer);
+            LOGGER.error("show fields list exp: {} of table {}",ep.getErrorMessage(),fieldListRequest.getTable());
+            throw new RuntimeException("show fields list " + fieldListRequest.getTable());
+        }
         response.parse(buffer);
         return response;
     }
