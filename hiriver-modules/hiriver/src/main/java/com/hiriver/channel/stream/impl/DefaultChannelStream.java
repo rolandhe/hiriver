@@ -27,6 +27,7 @@ import com.hiriver.unbiz.mysql.lib.output.ColumnDefinition;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.GTidBinlogPosition;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.ValidBinlogOutput;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.event.BaseRowEvent;
+import com.hiriver.unbiz.mysql.lib.protocol.binlog.exp.FetalParseValueExp;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.exp.ReadTimeoutExp;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.exp.TableAlreadyModifyExp;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.extra.BinlogPosition;
@@ -92,7 +93,12 @@ public class DefaultChannelStream implements ChannelStream {
     /**
      * 当与mysql失去连接后，线程sleep的时间，超过该时间后再进行重连
      */
-    private long faultTolerantTimeout = 5000;
+    private long faultTolerantTimeout = 5000L;
+    
+    /**
+     * 当发生致命错误时下次重试的间隔时间，默认2min
+     */
+    private long fetalWaitTimeout = 120000L;
     /**
      * 指定的consumer实现，用于消费数据
      */
@@ -167,6 +173,14 @@ public class DefaultChannelStream implements ChannelStream {
         this.faultTolerantTimeout = faultTolerantTimeout;
     }
 
+    public long getFetalWaitTimeout() {
+        return fetalWaitTimeout;
+    }
+
+    public void setFetalWaitTimeout(long fetalWaitTimeout) {
+        this.fetalWaitTimeout = fetalWaitTimeout;
+    }
+
     /**
      * 开启mysql binlog数据接收线程和数据消费线程
      */
@@ -236,8 +250,9 @@ public class DefaultChannelStream implements ChannelStream {
                 this.streamSource.release();
                 continue;
 
-            } catch (TableAlreadyModifyExp e) {
-                LOG.info("table has been modified.", e);
+            } catch (TableAlreadyModifyExp|FetalParseValueExp e) {
+                LOG.error("table has been modified or parse column error.", e);
+                safeSleep(fetalWaitTimeout);
                 continue;
             } catch (RuntimeException e) {
                 LOG.info("channelId is " + channelId + ",meet unknown error.", e);
@@ -248,8 +263,6 @@ public class DefaultChannelStream implements ChannelStream {
                 continue;
             }
             if (transactionRecognizer.isStart(validOutput)) {
-                
-                
                 BinlogDataSet ds = BinlogDataSet.createStartTransEvent(this.channelId, streamSource.getHostUrl(),
                         transactionRecognizer.getGTId());
                 ensureDispatch(new DefaultBufferableBinlogDataSet(ds));

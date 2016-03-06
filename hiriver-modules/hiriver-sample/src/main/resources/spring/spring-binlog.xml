@@ -26,6 +26,7 @@
 
     <bean id="channel_0000" class="com.hiriver.channel.stream.impl.DefaultChannelStream">
         <property name="faultTolerantTimeout" value="${faultTolerantTimeout}"></property>
+        <property name="fetalWaitTimeout" value="${fetalWaitTimeout}"></property>
         <property name="channelId" value="${channel.0000.id}"></property>
         <property name="binlogPositionStore" ref="positionStore"></property>
         <property name="streamSource" ref="mysqlStreamSource"></property>

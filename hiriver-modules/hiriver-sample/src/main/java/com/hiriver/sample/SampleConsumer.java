@@ -15,17 +15,18 @@ import com.hiriver.unbiz.mysql.lib.output.RowModifyTypeEnum;
 
 @Component
 public class SampleConsumer extends AbstractConsumer implements Consumer {
-	private static final Logger LOG = LoggerFactory.getLogger(SampleConsumer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SampleConsumer.class);
+
     @Override
     protected void consumerRowData(final BinlogDataSet rowData) {
 
         for (String tb : rowData.getRowDataMap().keySet()) {
-        	LOG.info("=======start table:" + tb+"=======");
+            LOG.info("=======start table:" + tb + "=======");
             List<BinlogResultRow> rowList = rowData.getRowDataMap().get(tb);
 
             int index = 0;
             for (BinlogResultRow row : rowList) {
-                LOG.info("=======start row [" + (index)+"]=======");
+                LOG.info("=======start row [" + (index) + "]=======");
                 if (row.getRowModifyType() == RowModifyTypeEnum.INSERT) {
                     outputRow(row.getAfterColumnValueList());
                 }
@@ -36,7 +37,7 @@ public class SampleConsumer extends AbstractConsumer implements Consumer {
                     outputRow(row.getBeforeColumnValueList());
                     outputRow(row.getAfterColumnValueList());
                 }
-                LOG.info("=======end row [" + (index)+"]=======");
+                LOG.info("=======end row [" + (index) + "]=======");
                 index++;
             }
             LOG.info("=======end table:" + tb + "=======");

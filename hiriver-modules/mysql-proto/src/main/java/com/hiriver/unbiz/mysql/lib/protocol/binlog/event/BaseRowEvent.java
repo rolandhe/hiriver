@@ -19,6 +19,7 @@ import com.hiriver.unbiz.mysql.lib.protocol.binlog.BinlogEvent;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.BinlogEventType;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.TableMeta;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.TableMetaProvider;
+import com.hiriver.unbiz.mysql.lib.protocol.binlog.exp.FetalParseValueExp;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.exp.InvalidColumnType;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.exp.TableAlreadyModifyExp;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlNumberUtils;
@@ -118,7 +119,7 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
         parseVerPostHeader(buf, pos);
         columnCount = (int) MysqlNumberUtils.readLencodeLong(buf, pos);
         if (this.tableMapEvent.getColumnCount() < columnCount) {
-            LOG.info("db {},table {}, binlog column count is {},but current table column is {} ",
+            LOG.error("db {},table {}, binlog column count is {},but current table column is {} ",
                     tableMapEvent.getSchema(), tableMapEvent.getTableName(), columnCount,
                     tableMapEvent.getColumnCount());
 
@@ -193,19 +194,7 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
     private void parseEachColumnOfRow(byte[] buf, Position pos, final List<BinlogColumnValue> columnValueList,
             ColumnDefinition columnDef, int meta, ColumnType typeInBinlog) {
         if (typeInBinlog != ColumnType.MYSQL_TYPE_STRING) {
-            try {
-                columnValueList.add(new BinlogColumnValue(columnDef,
-                        ColumnTypeValueParserFactory.factory(typeInBinlog).parse(buf, pos, columnDef, meta)));
-            } catch (RuntimeException e) {
-                BinlogColumnValue firstValue = null;
-                if (columnValueList.size() > 0) {
-                    firstValue = columnValueList.get(0);
-                }
-                LOG.info("invalid string value:{},{},{}--{}--{}", tableMapEvent.getTableName(),
-                        columnDef.getColumName(), typeInBinlog.getTypeValue(), columnDef.getCharset().getCharsetName(),
-                        firstValue);
-                throw e;
-            }
+            doParseColumn(buf, pos, columnValueList, columnDef, meta, typeInBinlog);
             return;
         }
         int[] lengthHolder = { 0 };
@@ -217,13 +206,31 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
             throw e;
         }
         if (realType == ColumnType.MYSQL_TYPE_STRING) {
-            columnValueList.add(new BinlogColumnValue(columnDef,
-                    ColumnTypeValueParserFactory.factory(realType).parse(buf, pos, columnDef, lengthHolder[0])));
+            doParseColumn(buf, pos, columnValueList, columnDef, lengthHolder[0], realType);
             return;
         }
 
-        columnValueList.add(new BinlogColumnValue(columnDef,
-                ColumnTypeValueParserFactory.factory(realType).parse(buf, pos, columnDef, meta)));
+        doParseColumn(buf, pos, columnValueList, columnDef, meta, realType);
+    }
+
+    
+    private void doParseColumn(byte[] buf, Position pos, final List<BinlogColumnValue> columnValueList,
+            ColumnDefinition columnDef, int meta, ColumnType columnType) {
+        try {
+            columnValueList.add(new BinlogColumnValue(columnDef,
+                    ColumnTypeValueParserFactory.factory(columnType).parse(buf, pos, columnDef, meta)));
+        } catch (RuntimeException e) {
+            BinlogColumnValue firstValue = null;
+            if (columnValueList.size() > 0) {
+                firstValue = columnValueList.get(0);
+            }
+            LOG.error(
+                    "parse column value error, maybe you add new column in middle of all columns.{},{},binlog type:{},table type {},charset {}, first column value {}",
+                    tableMapEvent.getTableName(), columnDef.getColumName(), columnType.getTypeValue(),
+                    columnDef.getType().getTypeValue(), columnDef.getCharset().getCharsetName(), firstValue);
+            throw new FetalParseValueExp(e);
+        }
+
     }
 
     private ColumnType prepareForTypeString(int meta, int[] lengthHolder) {

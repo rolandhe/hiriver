@@ -45,5 +45,5 @@
     
     
     
-    <import resource="classpath:spring/spring-gtid.xml"/>
+    <import resource="classpath:spring/spring-binlog.xml"/>
 </beans>

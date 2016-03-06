@@ -112,6 +112,9 @@ public class LocalBinlogReader {
     private void readValidEvent(final FileInputStream fs) throws IOException {
         while (true) {
             BinlogEvent event = readEvent(fs);
+            if(event.getBinlogEventPos() == 258100954L){
+                System.out.println("hehe");
+            }
             if (event instanceof TableMapEvent) {
                 context.setTableMapEvent((TableMapEvent) event);
                 LOG.info("table name from table map event {}", context.getTableMapEvent().getTableName());
@@ -226,7 +229,7 @@ public class LocalBinlogReader {
     // }
 
     public static void main(String[] args) {
-        LocalBinlogReader reader = new LocalBinlogReader("/Users/hexiufeng/work/datafix/binlog/mysql-bin.000057");
+        LocalBinlogReader reader = new LocalBinlogReader("/Users/hexiufeng/work/datafix/binlog/old/mysql-bin.000057");
         reader.traversal();
     }
 }
