@@ -38,7 +38,7 @@ public class PacketTool {
      * @return 是否是EOF包
      * 
      */
-    public static boolean isEofPackete(byte[] buf) {
+    public static boolean isEofPacket(byte[] buf) {
         return buf.length < 9 && (buf[0] & 0xfe) == 0xfe;
     }
 
@@ -49,7 +49,7 @@ public class PacketTool {
      * @param pos 开始位置
      * @return 是否是EOF包
      */
-    public static boolean isEofPackete(byte[] buf, int pos) {
+    public static boolean isEofPacket(byte[] buf, int pos) {
         return buf.length - pos < 9 && (buf[pos] & 0xfe) == 0xfe;
     }
 

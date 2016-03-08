@@ -29,7 +29,7 @@ public class FieldListCommandResponse extends AbstractResponse implements Respon
         colDef.parse(buf);
         columnList.add(colDef);
         byte[] nextBuffer = resultContextReader.readNextPacketPayload();
-        while (!PacketTool.isEofPackete(nextBuffer)) {
+        while (!PacketTool.isEofPacket(nextBuffer)) {
             ColumnDefinitionResponse nextColDef = new ColumnDefinitionResponse(false);
             nextColDef.parse(nextBuffer);
             columnList.add(nextColDef);

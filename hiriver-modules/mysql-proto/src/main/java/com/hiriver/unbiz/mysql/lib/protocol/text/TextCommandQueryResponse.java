@@ -35,7 +35,7 @@ public class TextCommandQueryResponse extends AbstractResponse implements Respon
         readColumnDefinition(columnCount);
 
         byte[] rowBuffer = resultContextReader.readNextPacketPayload();
-        while (!PacketTool.isEofPackete(rowBuffer, 0)) {
+        while (!PacketTool.isEofPacket(rowBuffer, 0)) {
             // pasre row
             ResultsetRowResponse row = new ResultsetRowResponse(columnList);
             row.parse(rowBuffer);

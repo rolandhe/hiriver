@@ -229,7 +229,12 @@ public class LocalBinlogReader {
     // }
 
     public static void main(String[] args) {
-        LocalBinlogReader reader = new LocalBinlogReader("/Users/hexiufeng/work/datafix/binlog/old/mysql-bin.000057");
+        String path = args[0];
+        if(path == null || path.length() == 0){
+            System.out.println("please specify binlog file.");
+            return;
+        }
+        LocalBinlogReader reader = new LocalBinlogReader(path);
         reader.traversal();
     }
 }

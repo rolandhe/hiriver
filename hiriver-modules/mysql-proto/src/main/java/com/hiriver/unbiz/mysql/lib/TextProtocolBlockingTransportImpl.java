@@ -89,7 +89,7 @@ public class TextProtocolBlockingTransportImpl extends AbstractBlockingTransport
             ERRPacket ep = new ERRPacket();
             ep.parse(buffer);
             LOGGER.error("show fields list exp: {} of table {}",ep.getErrorMessage(),fieldListRequest.getTable());
-            throw new RuntimeException("show fields list " + fieldListRequest.getTable());
+            throw new RuntimeException("show fields list " + fieldListRequest.getTable() + ":" + ep.getErrorMessage());
         }
         response.parse(buffer);
         return response;

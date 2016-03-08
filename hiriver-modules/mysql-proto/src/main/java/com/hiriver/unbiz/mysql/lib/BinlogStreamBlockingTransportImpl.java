@@ -41,9 +41,11 @@ import com.hiriverunbiz.mysql.lib.exp.InvalidMysqlDataException;
 
 /**
  * 用于binlog复制的堵塞模式的通信实现。一般用于mysql的主从同步实现。<br>
- * <p>在本实现中也实现一部分Text protocol，这是因为在5.6版本中同步需要先判断一些
- * server端的配置信息或者配置session参数，比如调用SET @master_binlog_checksum= @@global.binlog_checksum
- * 配置checksum参数，后续也增加自动识别gtid mode的实现，这些都需需要实现Text protocol</p>
+ * <p>
+ * 在本实现中也实现一部分Text protocol，这是因为在5.6版本中同步需要先判断一些
+ * server端的配置信息或者配置session参数，比如调用SET @master_binlog_checksum= @@global.binlog_checksum 配置checksum参数，后续也增加自动识别gtid
+ * mode的实现，这些都需需要实现Text protocol
+ * </p>
  * 
  * @author hexiufeng
  *
@@ -55,7 +57,7 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
     private int serverId;
     private TableFilter tableFilter;
     private boolean checkSum = true;
-    
+
     private Position defaultPos = Position.factory();
     /**
      * 在解析Response时需要持续读取数据的ResultContentReader接口默认实现
@@ -69,8 +71,7 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
 
     };
     /**
-     * 表元数据的提供者实现，从db中读取，基于 Text Protocol的COM_FIELD_LIST指令，比desc table name sql更有效，
-     * 返回更多数据
+     * 表元数据的提供者实现，从db中读取，基于 Text Protocol的COM_FIELD_LIST指令，比desc table name sql更有效， 返回更多数据
      */
     private TableMetaProvider tableMetaProvider = new TableMetaProvider() {
         private final Map<String, TableMeta> cache = new HashMap<String, TableMeta>();
@@ -103,6 +104,7 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
             cache.put(fullTableName, tableMeta);
             return tableMeta;
         }
+
         /**
          * 从{@link ColumnDefinitionResponse}转换成外部可以识别的 {@link ColumnDefinition}
          * 
@@ -198,7 +200,7 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
         context.setTableMetaProvider(tableMetaProvider);
         super.open();
         registerSlave();
-        
+
         super.writeRequest(binlogPos.packetDumpRequest(this.serverId));
         readFormatEvent();
         super.readTimeoutHanlder = new SocketReadTimeoutHanlder() {
@@ -246,7 +248,7 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
 
     @Override
     public ValidBinlogOutput getBinlogOutputImmediately() {
-        
+
         BinlogEvent event = readEvent(defaultPos);
         if (event instanceof TableMapEvent) {
             context.setTableMapEvent((TableMapEvent) event);
@@ -316,10 +318,16 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
         byte[] buf = super.readResponsePayload();
 
         if (!PacketTool.isOkPackete(buf)) {
-            ERRPacket ep = new ERRPacket();
-            ep.setCheckSum(this.checkSum);
-            ep.parse(buf);
-            throw new InvalidMysqlDataException(ep.getErrorMessage());
+            if (PacketTool.isErrPackete(buf)) {
+                ERRPacket ep = new ERRPacket();
+                ep.setCheckSum(this.checkSum);
+                ep.parse(buf);
+                throw new InvalidMysqlDataException(ep.getErrorMessage());
+            }
+            if (PacketTool.isEofPacket(buf)) {
+                throw new InvalidMysqlDataException("eof");
+            }
+            throw  new InvalidMysqlDataException("recieve invalid packet");
         }
 
         pos.reset();
@@ -349,14 +357,14 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
         }
         if (event instanceof BaseRowEvent) {
             BaseRowEvent rowEvent = (BaseRowEvent) event;
-            
-            
-            boolean ret =  this.tableFilter.filter(rowEvent.getTableMapEvent().getSchema(),
+
+            boolean ret = this.tableFilter.filter(rowEvent.getTableMapEvent().getSchema(),
                     rowEvent.getTableMapEvent().getTableName());
-            
-            LOGGER.debug("filter row event,{}.{}, {} ",rowEvent.getTableMapEvent().getSchema(),rowEvent.getTableMapEvent().getTableName(),ret);
-            if(ret){
-            	return true;
+
+            LOGGER.debug("filter row event,{}.{}, {} ", rowEvent.getTableMapEvent().getSchema(),
+                    rowEvent.getTableMapEvent().getTableName(), ret);
+            if (ret) {
+                return true;
             }
             return ret;
         } else {
