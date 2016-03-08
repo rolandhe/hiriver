@@ -321,7 +321,7 @@ public class DefaultChannelStream implements ChannelStream {
      * 消费者线程核心业务处理。<br>
      * <u>
      * <li>从 {@link ChannelBuffer}读取数据</li>
-     * <li>调用{@link Consumer#consumer(BinlogDataSet, BinlogPositionStoreTrigger)} 消费数据</li>
+     * <li>调用{@link Consumer#consume(BinlogDataSet, BinlogPositionStoreTrigger)} 消费数据</li>
      * </ul>
      */
     private void consumerCore() {
@@ -335,7 +335,7 @@ public class DefaultChannelStream implements ChannelStream {
             if (buffedDs == null) {
                 continue;
             }
-            consumer.consumer(buffedDs.getBinlogDataSet(), createBinlogPositionStoreTrigger(buffedDs));
+            consumer.consume(buffedDs.getBinlogDataSet(), createBinlogPositionStoreTrigger(buffedDs));
         }
     }
 
@@ -349,7 +349,7 @@ public class DefaultChannelStream implements ChannelStream {
     }
 
     /**
-     * 创建{@link Consumer#consumer(BinlogDataSet, BinlogPositionStoreTrigger)}需要的{@link BinlogPositionStoreTrigger}回调。
+     * 创建{@link Consumer#consume(BinlogDataSet, BinlogPositionStoreTrigger)}需要的{@link BinlogPositionStoreTrigger}回调。
      * 用于消费者触发记录同步点。<br>
      * <p>如果当前buffedDs是否具体的数据，则不需要记录同步点，如果是事务的结束，则需要 </p>
      * 

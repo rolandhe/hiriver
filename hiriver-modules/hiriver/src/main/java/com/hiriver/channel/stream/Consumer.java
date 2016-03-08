@@ -25,5 +25,5 @@ public interface Consumer {
      * @param ds 一般是从binlog中解析的数据，也可能是空数据，用于标示需要记录同步点标示数据， 通过{@link BinlogDataSet#getIsPositionStoreTrigger()}=true来识别
      * @param storeTrigger 记录同步点的触发器，当{@link BinlogDataSet#getIsPositionStoreTrigger()}=true被调用
      */
-    void consumer(final BinlogDataSet ds, final BinlogPositionStoreTrigger storeTrigger);
+    void consume(final BinlogDataSet ds, final BinlogPositionStoreTrigger storeTrigger);
 }

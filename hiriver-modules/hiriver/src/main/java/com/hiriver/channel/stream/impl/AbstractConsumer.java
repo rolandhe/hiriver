@@ -13,7 +13,7 @@ import com.hiriver.channel.stream.Consumer;
 public abstract class AbstractConsumer implements Consumer {
 
     @Override
-    public final void consumer(final BinlogDataSet ds, final BinlogPositionStoreTrigger storeTrigger) {
+    public final void consume(final BinlogDataSet ds, final BinlogPositionStoreTrigger storeTrigger) {
         if(ds.getIsPositionStoreTrigger()){
             storeTrigger.triggerStoreBinlogPos();
             return;
@@ -21,7 +21,7 @@ public abstract class AbstractConsumer implements Consumer {
         if(ds.isStartTransEvent()){
             return;
         }
-        consumerRowData(ds);
+        consumeRowData(ds);
     }
     /**
      * 消费使用binlog数据的抽象方法，由业务方实现.<br>
@@ -34,5 +34,5 @@ public abstract class AbstractConsumer implements Consumer {
      * 
      * @param rowData 从binlog识别出来的数据
      */
-    protected abstract void  consumerRowData(final BinlogDataSet rowData);
+    protected abstract void  consumeRowData(final BinlogDataSet rowData);
 }

@@ -18,7 +18,7 @@ public class SampleConsumer extends AbstractConsumer implements Consumer {
     private static final Logger LOG = LoggerFactory.getLogger(SampleConsumer.class);
 
     @Override
-    protected void consumerRowData(final BinlogDataSet rowData) {
+    protected void consumeRowData(final BinlogDataSet rowData) {
 
         for (String tb : rowData.getRowDataMap().keySet()) {
             LOG.info("=======start table:" + tb + "=======");
