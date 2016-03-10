@@ -236,8 +236,8 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
         Position pos = Position.factory();
         while (true) {
             BinlogEvent event = readEvent(pos);
-            if (event instanceof TableMapEvent) {
-                context.setTableMapEvent((TableMapEvent) event);
+            if(processSpecialEvent(event)){
+                continue;
             }
             ValidBinlogOutput ve = distinguishEvent(event);
             if (ve != null) {
@@ -250,11 +250,22 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
     public ValidBinlogOutput getBinlogOutputImmediately() {
 
         BinlogEvent event = readEvent(defaultPos);
-        if (event instanceof TableMapEvent) {
-            context.setTableMapEvent((TableMapEvent) event);
+        if(processSpecialEvent(event)){
             return null;
         }
         return distinguishEvent(event);
+    }
+    
+    private boolean processSpecialEvent(final BinlogEvent event){
+        if (event instanceof RotateEvent) {
+            context.setRotateEvent((RotateEvent) event);
+            return true;
+        }
+        if (event instanceof TableMapEvent) {
+            context.setTableMapEvent((TableMapEvent) event);
+            return true;
+        }
+        return false;
     }
 
     /**
