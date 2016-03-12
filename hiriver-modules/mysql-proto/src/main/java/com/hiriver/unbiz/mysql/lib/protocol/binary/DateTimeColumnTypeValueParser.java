@@ -29,6 +29,7 @@ public class DateTimeColumnTypeValueParser implements ColumnTypeValueParser {
         int second = (int) (t % 100);
         Calendar cal = Calendar.getInstance();
         cal.set(year, month - 1, date, hour, minute, second);
+        cal.set(Calendar.MILLISECOND, 0);
         return cal.getTime();
     }
 
