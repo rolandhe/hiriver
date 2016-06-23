@@ -25,7 +25,11 @@ class TextColumnValueProvider implements ColumnValueProvider {
             if (binValue == null) {
                 convertedString = null;
             }
-            convertedString = StringTool.safeConvertBytes2String(binValue, charset.getCharsetName());
+            if (charset == MyCharset.BINARY) {
+                convertedString = StringTool.safeConvertBytes2String(binValue);
+            } else {
+                convertedString = StringTool.safeConvertBytes2String(binValue, charset.getCharsetName());
+            }
             isConvert = true;
         }
 

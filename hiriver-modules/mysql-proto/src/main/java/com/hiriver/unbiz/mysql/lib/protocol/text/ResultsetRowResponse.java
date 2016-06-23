@@ -30,8 +30,9 @@ public class ResultsetRowResponse extends AbstractResponse implements Response {
 
     @Override
     public void parse(byte[] buf) {
+        Position pos = Position.factory();
         for (int i = 0; i < columnList.size(); i++) {
-            valueList.add(parseColumn(buf, i));
+            valueList.add(parseColumn(buf, i,pos));
         }
     }
 
@@ -42,8 +43,8 @@ public class ResultsetRowResponse extends AbstractResponse implements Response {
      * @param column 列的index
      * @return 列值
      */
-    private ColumnValue parseColumn(byte[] buf, int column) {
-        Position pos = Position.factory();
+    private ColumnValue parseColumn(byte[] buf, int column,Position pos) {
+        
         if ((buf[pos.getPos()] & 0xff) == 0xfb) {
             return null;
         } else {

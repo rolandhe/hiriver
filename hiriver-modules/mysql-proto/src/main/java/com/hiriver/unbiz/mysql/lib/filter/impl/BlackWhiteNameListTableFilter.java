@@ -43,11 +43,11 @@ public class BlackWhiteNameListTableFilter implements TableFilter {
         if (StringUtils.isNotBlank(this.tableWhite)) {
             String[] filterArr = this.tableWhite.split(FILTER_SEPARATOR);
             for (String filterStr : filterArr) {
-                if (isRegex(filterStr)) {
+//                if (isRegex(filterStr)) {
                     tableWhitePatternSet.add(Pattern.compile(filterStr.trim()));
-                } else {
-                    tableWhiteEqualsSet.add(filterStr);
-                }
+//                } else {
+//                    tableWhiteEqualsSet.add(filterStr);
+//                }
             }
         }
     }
@@ -61,11 +61,11 @@ public class BlackWhiteNameListTableFilter implements TableFilter {
         if (StringUtils.isNotBlank(this.tableBlack)) {
             String[] filterArr = this.tableBlack.split(FILTER_SEPARATOR);
             for (String filterStr : filterArr) {
-                if (isRegex(filterStr)) {
+//                if (isRegex(filterStr)) {
                     tableBlackPatternSet.add(Pattern.compile(filterStr.trim()));
-                } else {
-                    tableBlackEqualsSet.add(filterStr);
-                }
+//                } else {
+//                    tableBlackEqualsSet.add(filterStr);
+//                }
             }
         }
     }
@@ -138,16 +138,16 @@ public class BlackWhiteNameListTableFilter implements TableFilter {
      * @param pattern pattern
      * @return boolean
      */
-    private boolean isRegex(String pattern) {
-        char[] array = pattern.toCharArray();
-
-        for (char c : array) {
-            if (c == '^' || c == '$' || c == '*' || c == '?') {
-                return true;
-            }
-        }
-        return false;
-    }
+//    private boolean isRegex(String pattern) {
+//        char[] array = pattern.toCharArray();
+//
+//        for (char c : array) {
+//            if (c == '^' || c == '$' || c == '*' || c == '?') {
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
 
 
 }
