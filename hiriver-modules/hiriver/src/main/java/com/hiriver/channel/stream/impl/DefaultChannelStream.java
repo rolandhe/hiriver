@@ -291,8 +291,9 @@ public class DefaultChannelStream implements ChannelStream {
                     BufferableBinlogDataSet bufferDs =
                             createPersistPosBufferableBinlogDataSet(transactionRecognizer.getCurrentTransBeginPos());
                     ensureDispatch(bufferDs);
-                }
-                if (isSkipCurrentTrans) {
+                } else {
+                    LOG.info("{},skip position event of {}", this.channelId,
+                            transactionRecognizer.getCurrentTransBeginPos());
                     isSkipCurrentTrans = false;
                 }
                 LOG.debug("{},end trans, {}", this.channelId, transactionRecognizer.getCurrentTransBeginPos());
