@@ -94,7 +94,7 @@ public class DefaultChannelStream implements ChannelStream {
      * 当与mysql失去连接后，线程sleep的时间，超过该时间后再进行重连
      */
     private long faultTolerantTimeout = 5000L;
-    
+
     /**
      * 当发生致命错误时下次重试的间隔时间，默认2min
      */
@@ -250,7 +250,7 @@ public class DefaultChannelStream implements ChannelStream {
                 this.streamSource.release();
                 continue;
 
-            } catch (TableAlreadyModifyExp|FetalParseValueExp e) {
+            } catch (TableAlreadyModifyExp | FetalParseValueExp e) {
                 LOG.error("table has been modified or parse column error.", e);
                 safeSleep(fetalWaitTimeout);
                 continue;
@@ -266,7 +266,7 @@ public class DefaultChannelStream implements ChannelStream {
                 BinlogDataSet ds = BinlogDataSet.createStartTransEvent(this.channelId, streamSource.getHostUrl(),
                         transactionRecognizer.getGTId());
                 ensureDispatch(new DefaultBufferableBinlogDataSet(ds));
-                
+
                 LOG.info("{},start trans {}", this.channelId, transactionRecognizer.getCurrentTransBeginPos());
             }
             if (transactionRecognizer.tryRecognizePos(validOutput)) {
@@ -287,9 +287,11 @@ public class DefaultChannelStream implements ChannelStream {
             }
             if (transactionRecognizer.isEnd(validOutput)) {
                 context.setNextPos(transactionRecognizer.getCurrentTransBeginPos());
-                BufferableBinlogDataSet bufferDs =
-                        createPersistPosBufferableBinlogDataSet(transactionRecognizer.getCurrentTransBeginPos());
-                ensureDispatch(bufferDs);
+                if (!isSkipCurrentTrans) {
+                    BufferableBinlogDataSet bufferDs =
+                            createPersistPosBufferableBinlogDataSet(transactionRecognizer.getCurrentTransBeginPos());
+                    ensureDispatch(bufferDs);
+                }
                 if (isSkipCurrentTrans) {
                     isSkipCurrentTrans = false;
                 }
@@ -351,11 +353,13 @@ public class DefaultChannelStream implements ChannelStream {
     /**
      * 创建{@link Consumer#consume(BinlogDataSet, BinlogPositionStoreTrigger)}需要的{@link BinlogPositionStoreTrigger}回调。
      * 用于消费者触发记录同步点。<br>
-     * <p>如果当前buffedDs是否具体的数据，则不需要记录同步点，如果是事务的结束，则需要 </p>
+     * <p>
+     * 如果当前buffedDs是否具体的数据，则不需要记录同步点，如果是事务的结束，则需要
+     * </p>
      * 
      * 
      * @param buffedDs 需要消费的数据
-     * @return  同步点记录回调
+     * @return 同步点记录回调
      */
     private BinlogPositionStoreTrigger createBinlogPositionStoreTrigger(BufferableBinlogDataSet buffedDs) {
         if (!(buffedDs instanceof PersistPosBufferableBinlogDataSet)) {
@@ -470,8 +474,8 @@ public class DefaultChannelStream implements ChannelStream {
     /**
      * 加载有效的同步点<br>
      * <ul>
-     * <li>先从内存中读取 </li>
-     * <li>在从{@link BinlogPositionStore}读取 </li>
+     * <li>先从内存中读取</li>
+     * <li>在从{@link BinlogPositionStore}读取</li>
      * <li>读取配置</li>
      * </ul>
      * 
