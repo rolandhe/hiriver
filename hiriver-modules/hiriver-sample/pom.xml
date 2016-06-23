@@ -6,7 +6,7 @@
         <groupId>com.hiriver</groupId>
         <artifactId>hiriver-modules</artifactId>
         <relativePath>../</relativePath>
-        <version>1.0.5-SNAPSHOT</version>
+        <version>${hiriver.version}</version>
     </parent>
     <artifactId>hiriver-sample</artifactId>
     <packaging>war</packaging>
@@ -58,7 +58,7 @@
         <dependency>
             <groupId>com.hiriver</groupId>
             <artifactId>hiriver</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>${hiriver.version}</version>
         </dependency>
     </dependencies>
     <build>

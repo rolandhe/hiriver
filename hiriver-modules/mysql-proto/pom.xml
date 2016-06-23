@@ -6,7 +6,7 @@
         <groupId>com.hiriver</groupId>
         <artifactId>hiriver-modules</artifactId>
         <relativePath>../</relativePath>
-        <version>1.0.5-SNAPSHOT</version>
+        <version>${hiriver.version}</version>
     </parent>
     <artifactId>mysql-proto</artifactId>
     <packaging>jar</packaging>
