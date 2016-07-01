@@ -22,9 +22,10 @@ import com.hiriver.unbiz.mysql.lib.protocol.tool.StringTool;
  * 
  */
 public class HandShakeResponseV41 extends AbstractRequest implements Request {
+    private static final int DEF_PACK_SIZE = (1 << 24);
     private final HandShakeV10 handshake;
 
-    private int maxSendPacketSize = (1 << 24); // 16M
+    private int maxSendPacketSize = DEF_PACK_SIZE; // 16M
     private int charSet = MyCharset.UTF8.getCharset(); // utf8_general_ci
     private byte[] reserved = new byte[23];
     private String userName;
@@ -42,8 +43,11 @@ public class HandShakeResponseV41 extends AbstractRequest implements Request {
         propMap.put("_runtime_vendor", System.getProperty("java.vendor"));
     }
 
-    public HandShakeResponseV41(HandShakeV10 handshake, int sequenceId) {
+    public HandShakeResponseV41(HandShakeV10 handshake, int sequenceId, int maxSendPacketSize) {
         this.handshake = handshake;
+        if (maxSendPacketSize > DEF_PACK_SIZE) {
+            this.maxSendPacketSize = maxSendPacketSize;
+        }
         super.setSequenceId(sequenceId);
     }
 

@@ -25,7 +25,7 @@ import com.hiriver.unbiz.mysql.lib.protocol.binlog.event.FormatDescriptionEvent;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.event.GTidEvent;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.event.QueryEvent;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.event.RotateEvent;
-import com.hiriver.unbiz.mysql.lib.protocol.binlog.event.RowEventV2;
+import com.hiriver.unbiz.mysql.lib.protocol.binlog.event.RowEventV1;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.event.TableMapEvent;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.event.XidEvent;
 
@@ -94,7 +94,7 @@ public class LocalBinlogReader {
             LOG.error("read error.", e);
 
         } catch (FileEndExp e) {
-            LOG.info("read to end");
+            // LOG.info("read to end");
         } catch (RuntimeException e) {
 
             LOG.error("traversal error.", e);
@@ -110,21 +110,73 @@ public class LocalBinlogReader {
     }
 
     private void readValidEvent(final FileInputStream fs) throws IOException {
+        String gtid = "";
+        int wordCount = 0;
+        int allCount = 0;
         while (true) {
             BinlogEvent event = readEvent(fs);
-            if(event.getBinlogEventPos() == 258100954L){
+            if (event.getBinlogEventPos() == 509054727L) {
                 System.out.println("hehe");
             }
+
             if (event instanceof TableMapEvent) {
                 context.setTableMapEvent((TableMapEvent) event);
-                LOG.info("table name from table map event {}", context.getTableMapEvent().getTableName());
+                // if( context.getTableMapEvent().getTableName().startsWith("huichuan_ad.")){
+                // System.out.println("gogo");
+                // }
+                // LOG.info("table name from table map event {}", context.getTableMapEvent().getTableName());
                 continue;
+            }
+            if (event instanceof BaseRowEvent) {
+                // if(!context.getTableMapEvent().getTableName().startsWith("huichuan_ad.")){
+                // LOG.info("filter table event {}",context.getTableMapEvent().getTableName());
+                // }
             }
 
             ValidBinlogOutput out = distinguishEvent(event);
-            output(out);
+            if (out == null) {
+                continue;
+            }
+            if (out.getEventType() == ValidEventType.GTID) {
+                GTidEvent gevent = (GTidEvent) out.getEvent();
+                gtid = gevent.getGTidString();
+                continue;
+            }
+            if (out.getEventType() == ValidEventType.ROW) {
+                BaseRowEvent rowEvent = (BaseRowEvent) out.getEvent();
+                String tableName = rowEvent.getTableMapEvent().getFullTableName();
+                if(tableName.indexOf("sentinel") > 0){
+                    System.out.println(rowEvent.getRowList().get(0).getAfterColumnValueList());
+                }
+                if (tableName.startsWith("wolong_0003.tb_winfo_") && tableName.indexOf("stat") == -1) {
+                    wordCount++;
+                }
+                allCount++;
+                continue;
+            }
+            if (out.getEventType() == ValidEventType.TRANS_COMMIT) {
+
+                // if (count > 0) {
+                System.out.println(
+                        gtid + " " + wordCount + " " + allCount + " commit" + " " + out.getEvent().getOccurTime());
+                // }
+                gtid = "";
+                allCount = 0;
+                wordCount = 0;
+                continue;
+            }
+            if (out.getEventType() == ValidEventType.TRANS_ROLLBACK) {
+                System.out.println(gtid + "$rollback ");
+                gtid = "";
+                allCount = 0;
+                wordCount = 0;
+                continue;
+            }
+            // output(out);
         }
     }
+
+    private static long count = 0;
 
     private void output(ValidBinlogOutput out) {
         if (out == null) {
@@ -133,16 +185,17 @@ public class LocalBinlogReader {
 
         if (out.getEventType() == ValidEventType.GTID) {
             GTidEvent gevent = (GTidEvent) out.getEvent();
+            count++;
             LOG.info("gtid is {}", gevent.getGTidString());
-            if ("364e6af7-daf7-11e5-a15d-0cc47a4e0b5c:483154".equals(gevent.getGTidString())) {
+            if ("f5d8d81a-aed5-11e5-819a-70e28411a2a1:659585576".equals(gevent.getGTidString())) {
                 System.out.println("hehe");
             }
         } else if (out.getEventType() == ValidEventType.ROW) {
-            RowEventV2 rowEvent = (RowEventV2) out.getEvent();
-            LOG.info("row data table name is {}", rowEvent.getFullTableName());
+            BaseRowEvent rowEvent = (BaseRowEvent) out.getEvent();
+            // LOG.info("row data table name is {}", rowEvent.getFullTableName());
 
         } else {
-            LOG.info("event type is {}", out.getEventType());
+            // LOG.info("event type is {}", out.getEventType());
         }
 
     }
@@ -229,12 +282,17 @@ public class LocalBinlogReader {
     // }
 
     public static void main(String[] args) {
-        String path = args[0];
-        if(path == null || path.length() == 0){
-            System.out.println("please specify binlog file.");
-            return;
+//        String path = args[0];
+//        if (path == null || path.length() == 0) {
+//            System.out.println("please specify binlog file.");
+//            return;
+//        }
+        long start = System.currentTimeMillis();
+        for (String path : args) {
+            LocalBinlogReader reader = new LocalBinlogReader(path);
+            reader.traversal();
         }
-        LocalBinlogReader reader = new LocalBinlogReader(path);
-        reader.traversal();
+        System.out.println(System.currentTimeMillis() - start);
+        // System.out.println("all gtid:" + count);
     }
 }

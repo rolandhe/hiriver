@@ -1,6 +1,7 @@
 package com.hiriver.unbiz.mysql.lib;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -32,6 +33,7 @@ import com.hiriver.unbiz.mysql.lib.protocol.binlog.event.XidEvent;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.exp.ReadTimeoutExp;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.extra.BinlogPosition;
 import com.hiriver.unbiz.mysql.lib.protocol.text.ColumnDefinitionResponse;
+import com.hiriver.unbiz.mysql.lib.protocol.text.ColumnValue;
 import com.hiriver.unbiz.mysql.lib.protocol.text.FieldListCommandResponse;
 import com.hiriver.unbiz.mysql.lib.protocol.text.TextCommandFieldListRequest;
 import com.hiriver.unbiz.mysql.lib.protocol.text.TextCommandQueryRequest;
@@ -199,9 +201,9 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
     public void dump(BinlogPosition binlogPos) {
         context.setTableMetaProvider(tableMetaProvider);
         super.open();
+        String excuteGtIdSet = readExecutedGtidSet();
         registerSlave();
-
-        super.writeRequest(binlogPos.packetDumpRequest(this.serverId));
+        super.writeRequest(binlogPos.packetDumpRequest(this.serverId, excuteGtIdSet));
         readFormatEvent();
         super.readTimeoutHanlder = new SocketReadTimeoutHanlder() {
 
@@ -212,6 +214,18 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
             }
 
         };
+    }
+
+    private String readExecutedGtidSet() {
+        String sql = "show master status";
+        TextCommandQueryResponse queryResp = (TextCommandQueryResponse) executeSQLCore(sql);
+        queryResp.getRowList().get(0).getValueList();
+        List<ColumnValue> valueList = queryResp.getRowList().get(0).getValueList();
+        ColumnValue value = valueList.get(valueList.size() - 1);
+        if (value.getColumnName().equalsIgnoreCase("Executed_Gtid_Set")) {
+            return value.getValueAsString();
+        }
+        return null;
     }
 
     /**
@@ -236,7 +250,7 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
         Position pos = Position.factory();
         while (true) {
             BinlogEvent event = readEvent(pos);
-            if(processSpecialEvent(event)){
+            if (processSpecialEvent(event)) {
                 continue;
             }
             ValidBinlogOutput ve = distinguishEvent(event);
@@ -250,13 +264,13 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
     public ValidBinlogOutput getBinlogOutputImmediately() {
 
         BinlogEvent event = readEvent(defaultPos);
-        if(processSpecialEvent(event)){
+        if (processSpecialEvent(event)) {
             return null;
         }
         return distinguishEvent(event);
     }
-    
-    private boolean processSpecialEvent(final BinlogEvent event){
+
+    private boolean processSpecialEvent(final BinlogEvent event) {
         if (event instanceof RotateEvent) {
             context.setRotateEvent((RotateEvent) event);
             return true;
@@ -338,7 +352,7 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
             if (PacketTool.isEofPacket(buf)) {
                 throw new InvalidMysqlDataException("eof");
             }
-            throw  new InvalidMysqlDataException("recieve invalid packet");
+            throw new InvalidMysqlDataException("recieve invalid packet");
         }
 
         pos.reset();

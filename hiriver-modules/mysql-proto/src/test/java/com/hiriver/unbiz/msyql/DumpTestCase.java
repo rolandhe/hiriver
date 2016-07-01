@@ -7,7 +7,6 @@ import com.hiriver.unbiz.mysql.lib.TransportConfig;
 import com.hiriver.unbiz.mysql.lib.filter.TableFilter;
 import com.hiriver.unbiz.mysql.lib.output.BinlogResultRow;
 import com.hiriver.unbiz.mysql.lib.output.RowModifyTypeEnum;
-import com.hiriver.unbiz.mysql.lib.protocol.binlog.GTIDSet;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.GTidBinlogPosition;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.ValidBinlogOutput;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.event.BaseRowEvent;
@@ -35,8 +34,8 @@ public class DumpTestCase {
         tran.setTransportConfig(new TransportConfig());
         
 //         BinlogFileBinlogPosition pos = new BinlogFileBinlogPosition("mysql-bin.000001",400L);
-        GTIDSet gtidSet = new GTIDSet("8c80613e-ac5b-11e5-b170-148044d6636f:7");
-        GTidBinlogPosition pos = new GTidBinlogPosition(gtidSet);
+//        GTIDSet gtidSet = new GTIDSet("8c80613e-ac5b-11e5-b170-148044d6636f:7");
+        GTidBinlogPosition pos = new GTidBinlogPosition("8c80613e-ac5b-11e5-b170-148044d6636f:7");
         
         tran.dump(pos);
         while (true) {

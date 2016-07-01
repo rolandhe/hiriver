@@ -1,6 +1,9 @@
 package com.hiriver.unbiz.mysql.lib.protocol.binlog;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -10,38 +13,42 @@ import java.util.Map;
  *
  */
 public class GTIDSet {
-    private final Map<String, GTIDInfo> map = new LinkedHashMap<String, GTIDInfo>();
+    private final Map<String, List<GTIDInfo>> map = new LinkedHashMap<>();
 
     /**
      * 构造器
      * 
-     * @param gtidSetString uuid:12,uuid:13
+     * @param gtidSetString uuid:[3-]12,uuid:[3-]13
      */
     public GTIDSet(String gtidSetString) {
+        gtidSetString = gtidSetString.replaceFirst("\n", "");
         String[] array = gtidSetString.split(",");
         for (String gtidInfo : array) {
             GTIDInfo gi = new GTIDInfo(gtidInfo);
-            map.put(gi.getUuid(), gi);
+            List<GTIDInfo> internalList = null;
+            if (map.containsKey(gi.getUuid())) {
+                internalList = map.get(gi.getUuid());
+            } else {
+                internalList = new ArrayList<>();
+                map.put(gi.getUuid(), internalList);
+            }
+            internalList.add(gi);
         }
     }
 
-    public void updateGTIDPoint(String uuid, long point) {
-        if (map.containsKey(uuid)) {
-            map.get(uuid).setStop(point);
-        }
-    }
-
-    public GTIDInfo[] getAllGTIDSet() {
-        return map.values().toArray(new GTIDInfo[0]);
+    public Map<String, List<GTIDInfo>> getAllGTIDSet() {
+       return  Collections.unmodifiableMap(map);
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
-        for (GTIDInfo gi : map.values()) {
-            sb.append(gi.toString());
-            sb.append(",");
+        for (List<GTIDInfo> giList : map.values()) {
+            for (GTIDInfo gi : giList) {
+                sb.append(gi.toShortString());
+                sb.append(",");
+            }
         }
         return sb.substring(0, sb.length() - 1);
     }

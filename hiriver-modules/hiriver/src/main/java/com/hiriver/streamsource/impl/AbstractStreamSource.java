@@ -26,6 +26,7 @@ public abstract  class AbstractStreamSource implements StreamSource {
      * mysql是否开启了crc32数据校验
      */
     private boolean checkSum = true;
+    private int maxMaxPacketSize = 0;
     
     /**
      * 表过滤规则
@@ -71,6 +72,12 @@ public abstract  class AbstractStreamSource implements StreamSource {
     }
     public TableFilter getTableFilter() {
         return tableFilter;
+    }
+    public int getMaxMaxPacketSize() {
+        return maxMaxPacketSize;
+    }
+    public void setMaxMaxPacketSize(int maxMaxPacketSize) {
+        this.maxMaxPacketSize = maxMaxPacketSize;
     }
     public void setTableFilter(TableFilter tableFilter) {
         this.tableFilter = tableFilter;

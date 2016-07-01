@@ -40,6 +40,7 @@ public abstract class AbstractBlockingTransport implements BlockingTransport {
     private String password;
     private String defDbName;
     private TransportConfig transportConfig = new TransportConfig();
+    private int maxMaxPacketSize = 0;
 
     /**
      * 虽然BlockingTransport是<b>非线程安全</b>的,但BlockingTransport可能被池化，会被多个线程 使用，使用<b>volatile关键词</b>解决线程不可见问题。
@@ -193,7 +194,7 @@ public abstract class AbstractBlockingTransport implements BlockingTransport {
         HandShakeV10 handShake = new HandShakeV10();
         handShake.parse(readResponsePayload());
         // send handshake response request
-        HandShakeResponseV41 shakeResp = new HandShakeResponseV41(handShake, header.getSequenceId() + 1);
+        HandShakeResponseV41 shakeResp = new HandShakeResponseV41(handShake, header.getSequenceId() + 1,maxMaxPacketSize);
         shakeResp.setUserName(userName);
         shakeResp.setPassword(password); //
         shakeResp.setDbName(defDbName);
@@ -382,6 +383,14 @@ public abstract class AbstractBlockingTransport implements BlockingTransport {
 
     public void setDefDbName(String defDbName) {
         this.defDbName = defDbName;
+    }
+
+    public int getMaxMaxPacketSize() {
+        return maxMaxPacketSize;
+    }
+
+    public void setMaxMaxPacketSize(int maxMaxPacketSize) {
+        this.maxMaxPacketSize = maxMaxPacketSize;
     }
 
     public TransportConfig getTransportConfig() {

@@ -31,7 +31,7 @@ public class Connection {
 
         HandShakeV10 handShake = new HandShakeV10();
         readAndParse(socket.getInputStream(), handShake, header.getPayloadLen());
-        HandShakeResponseV41 shakeResp = new HandShakeResponseV41(handShake, 1);
+        HandShakeResponseV41 shakeResp = new HandShakeResponseV41(handShake, 1,0);
 
         // shakeResp.setSequenceId(shakeResp.getSequenceId());
         shakeResp.setUserName("root");

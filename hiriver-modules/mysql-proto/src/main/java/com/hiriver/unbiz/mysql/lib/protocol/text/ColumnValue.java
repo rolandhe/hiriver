@@ -38,4 +38,8 @@ public class ColumnValue {
     public MyCharset getCharset() {
         return definition.getCharset();
     }
+    
+    public String getColumnName(){
+        return definition.getColumName();
+    }
 }

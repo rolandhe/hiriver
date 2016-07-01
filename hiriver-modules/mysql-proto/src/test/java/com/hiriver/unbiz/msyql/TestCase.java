@@ -16,6 +16,7 @@ import com.hiriver.unbiz.mysql.lib.protocol.text.TextCommandFieldListRequest;
 public class TestCase {
     @Test
     public void test() {
+        String[] array = "1-2".split("-");
         System.out.println(UUID.randomUUID().toString());
         TransportConfig conf = new TransportConfig();
         TextProtocolBlockingTransportImpl transport =
