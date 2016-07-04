@@ -1,9 +1,5 @@
 package com.hiriver.unbiz.mysql.lib.protocol.binlog;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -11,7 +7,6 @@ import org.slf4j.LoggerFactory;
 
 import com.hiriver.unbiz.mysql.lib.protocol.Request;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.extra.BinlogPosition;
-
 
 /**
  * 基于gtid的同步点实现，适用于mysql5.6.9之后的版本
@@ -21,82 +16,22 @@ import com.hiriver.unbiz.mysql.lib.protocol.binlog.extra.BinlogPosition;
  */
 public class GTidBinlogPosition implements BinlogPosition {
     private static final Logger LOGGER = LoggerFactory.getLogger(GTidBinlogPosition.class);
-    private GTIDSet gtidset;
+    private GtIdSet gtidset;
 
     public GTidBinlogPosition() {
     }
 
     public GTidBinlogPosition(String gtIdSetString) {
-        this.gtidset = new GTIDSet(gtIdSetString);
+        this.gtidset = new GtIdSet(gtIdSetString);
     }
-    // public GTidBinlogPosition(GTIDSet gtidset) {
-    // this.gtidset = gtidset;
-    // }
 
     @Override
-    public Request packetDumpRequest(int serverId, String extendGtId) {
-        Map<String, List<GTIDInfo>> gtIdMap = mergeGtIdSetInfo(extendGtId);
+    public Request packetDumpRequest(int serverId) {
         if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("dump binlog use gtid set {}.",convertGtIdMap2String(gtIdMap));
+            LOGGER.info("dump binlog use gtid set {}.", gtidset);
         }
-        GTidDumpRequest request = new GTidDumpRequest(gtIdMap, serverId);
+        GTidDumpRequest request = new GTidDumpRequest(gtidset.getGtidMap(), serverId);
         return request;
-    }
-
-    private String convertGtIdMap2String(Map<String, List<GTIDInfo>> gtIdMap) {
-        StringBuilder sb = new StringBuilder();
-        for (String uuid : gtIdMap.keySet()) {
-            List<GTIDInfo> list = gtIdMap.get(uuid);
-            for (GTIDInfo gi : list) {
-                sb.append(gi.toString());
-                sb.append(",");
-            }
-        }
-        return sb.substring(0, sb.length() - 1);
-    }
-
-    private Map<String, List<GTIDInfo>> mergeGtIdSetInfo(String extendGtId) {
-        if (extendGtId == null || extendGtId.length() == 0) {
-            return gtidset.getAllGTIDSet();
-        }
-        LOGGER.info("read Executed_Gtid_Set from db: {}.",extendGtId);
-        GTIDSet extend = new GTIDSet(extendGtId);
-        Map<String, List<GTIDInfo>> extendMap = extend.getAllGTIDSet();
-        Map<String, List<GTIDInfo>> currentMap = gtidset.getAllGTIDSet();
-        String currentUuid = currentMap.keySet().iterator().next();
-        GTIDInfo currentGi = currentMap.get(currentUuid).get(0);
-
-        Map<String, List<GTIDInfo>> mergedMap = new LinkedHashMap<>();
-        
-//        List<String> uuidList = new ArrayList<>(extendMap.keySet().size());
-//        uuidList.addAll(extendMap.keySet());
-//        Collections.reverse(uuidList);
-        
-        for (String uuid : extendMap.keySet()) {
-            if (!uuid.equalsIgnoreCase(currentUuid)) {
-                List<GTIDInfo> oldGiList = extendMap.get(uuid);
-                List<GTIDInfo> newGiList = new ArrayList<>(oldGiList.size());
-                for(GTIDInfo gi : oldGiList){
-                    newGiList.add(new GTIDInfo(gi.getUuid(),gi.getStart(),gi.getStop() + 1));
-                }
-                mergedMap.put(uuid, newGiList);
-                continue;
-            }
-            List<GTIDInfo> list = new ArrayList<>();
-            List<GTIDInfo> extList = extendMap.get(uuid);
-            for (GTIDInfo gi : extList) {
-                if (gi.getStop() < currentGi.getStop()) {
-                    list.add(new GTIDInfo(gi.getUuid(),gi.getStart(),gi.getStop() + 1));
-                    continue;
-                }
-                long stop = currentGi.getStop();
-                list.add(new GTIDInfo(uuid, gi.getStart(), stop));
-                break;
-            }
-            mergedMap.put(uuid, list);
-        }
-
-        return mergedMap;
     }
 
     @Override
@@ -104,12 +39,28 @@ public class GTidBinlogPosition implements BinlogPosition {
         return toString().getBytes();
     }
 
-    public GTIDSet getGtidset() {
+    public GtIdSet getGtidset() {
         return gtidset;
     }
 
-    public void setGtidset(GTIDSet gtidset) {
+    public void setGtidset(GtIdSet gtidset) {
         this.gtidset = gtidset;
+    }
+
+    public GTidBinlogPosition fixConfPos() {
+        Map<String, GtId> gtIdMap = gtidset.cloneGtIdMap();
+        StringBuilder sb = new StringBuilder();
+        int count = 0;
+        for (String uuid : gtIdMap.keySet()) {
+            if (count < gtIdMap.size() - 1) {
+                sb.append(gtIdMap.get(uuid).cloneNextGtId().toString());
+            } else {
+                sb.append(gtIdMap.get(uuid).cloneGtId().toString());
+            }
+            sb.append(",");
+            count++;
+        }
+        return new GTidBinlogPosition(sb.substring(0, sb.length() - 1));
     }
 
     @Override

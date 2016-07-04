@@ -1,7 +1,5 @@
 package com.hiriver.position.store.impl;
 
-import java.util.UUID;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,16 +31,17 @@ public abstract class AbstractBinlogPositionStore implements BinlogPositionStore
         }
         String line = new String(posBuf);
         line = line.trim();
+        
+        try{
+            return new GTidBinlogPosition(line);
+        }catch(RuntimeException e){
+            LOG.info("loaded binlog pos [{}] from store may be binlog name+pos in {},",line, channelId);
+        }
+        
         String[] array = line.split(":");
         if (array.length != 2) {
             LOG.info("loaded binlog pos [{}] from store is incorrect in {},",line, channelId);
             return null;
-        }
-        try{
-            UUID.fromString(array[0]);
-            return new GTidBinlogPosition(line);
-        }catch(IllegalArgumentException e){
-            LOG.info("loaded binlog pos [{}] from store may be binlog name+pos in {},",line, channelId);
         }
         
         return new BinlogFileBinlogPosition(array[0], Long.parseLong(array[1]));

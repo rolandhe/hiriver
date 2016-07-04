@@ -1,6 +1,5 @@
 package com.hiriver.unbiz.mysql.lib.protocol.binlog;
 
-import java.util.List;
 import java.util.Map;
 
 import com.hiriver.unbiz.mysql.lib.protocol.AbstractRequest;
@@ -16,9 +15,9 @@ import com.hiriver.unbiz.mysql.lib.protocol.tool.SafeByteArrayOutputStream;
  */
 public class GTidDumpRequest extends AbstractRequest {
     private final int serverId;
-    private final  Map<String, List<GTIDInfo>> gtidInfoMap;
+    private final Map<String, GtId> gtidInfoMap;
 
-    public GTidDumpRequest( Map<String, List<GTIDInfo>> gtidInfoMap, int serverId) {
+    public GTidDumpRequest(Map<String, GtId> gtidInfoMap, int serverId) {
         this.gtidInfoMap = gtidInfoMap;
         this.serverId = serverId;
     }
@@ -32,32 +31,22 @@ public class GTidDumpRequest extends AbstractRequest {
         out.safeWrite(MysqlNumberUtils.writeNInt(0, 4)); // binlog name
         out.safeWrite(MysqlNumberUtils.writeNLong(4L, 8)); // binlog_pos
 
-        out.safeWrite(MysqlNumberUtils.writeNInt(calDataLen(gtidInfoMap), 4)); // datalen
+        out.safeWrite(MysqlNumberUtils.writeNInt(calDataLen(gtidInfoMap.size()), 4)); // datalen
 
         out.safeWrite(MysqlNumberUtils.writeNLong(gtidInfoMap.size(), 8)); // n_sids
 
         for (String uuid : gtidInfoMap.keySet()) {
             out.safeWrite(GTSidTool.convertSidString2DumpFormatBytes(uuid)); // sid
-            List<GTIDInfo> internals = gtidInfoMap.get(uuid);
+            GtId gi = gtidInfoMap.get(uuid);
 
-            out.safeWrite(MysqlNumberUtils.writeNLong(internals.size(), 8)); // n_intervals
-            for (GTIDInfo gi : internals) {
-                out.safeWrite(MysqlNumberUtils.writeNLong(gi.getStart(), 8)); // start
-                out.safeWrite(MysqlNumberUtils.writeNLong(gi.getStop() == 1L?2L:gi.getStop(), 8)); // stop
-            }
+            out.safeWrite(MysqlNumberUtils.writeNLong(1L, 8)); // n_intervals
+            out.safeWrite(MysqlNumberUtils.writeNLong(gi.getInternel().getStart(), 8)); // start
+            out.safeWrite(MysqlNumberUtils.writeNLong(gi.getInternel().getStop(), 8)); // stop
         }
     }
 
-    private int calDataLen( Map<String, List<GTIDInfo>> gtidInfoMap) {
-        int len = 8;
-        for (String uuid : gtidInfoMap.keySet()) {
-            len += 24; // uuid size + n_intervals
-            
-            List<GTIDInfo> internals = gtidInfoMap.get(uuid);
-            len += internals.size() * 16;
-        }
-        
-        return len;
+    private int calDataLen(int nSids) {
+        return nSids * 40 + 8;
     }
 
 }

@@ -18,10 +18,9 @@ public interface BinlogPosition {
      * 转换binlog pos为dump指令
      * 
      * @param serverId 从库的唯一id，当前系统逻辑上就是一个从库
-     * @param extendGtId 当前数据库的gtid
      * @return dump指令请求
      */
-    Request packetDumpRequest(int serverId,String extendGtId);
+    Request packetDumpRequest(int serverId);
     
     /**
      * 转换成可以存储的二进制流。缺省实现是调用当前对象的toString()方法，然后转换成byte数组

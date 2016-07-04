@@ -496,15 +496,32 @@ public class DefaultChannelStream implements ChannelStream {
                 throw new RuntimeException("stored binlogPosition is not matched.");
             }
             LOG.info("load binlog position {} from store,channelId is {}.", loadPos.toString(), this.channelId);
+            setupInitGtIdPos(loadPos);
             return loadPos;
         }
         if (this.configBinlogPos != null) {
             LOG.info("load binlog position {} from configure,channelId is {}.", configBinlogPos.toString(),
                     this.channelId);
             isSkipCurrentTrans = false;
-            return configBinlogPos;
+            setupInitGtIdPos(configBinlogPos);
+            return adaptConfigPos(configBinlogPos);
         }
         throw new RuntimeException("can not find binlog position.");
+    }
+    
+    private BinlogPosition adaptConfigPos(BinlogPosition confPos){
+        if(!this.isGtId()){
+            return confPos;
+        }
+        return ((GTidBinlogPosition)confPos).fixConfPos();
+    }
+    
+    private void setupInitGtIdPos(BinlogPosition loadPos){
+        if(!this.isGtId()){
+            return;
+        }
+        GTIDTransactionRecognizer tr = (GTIDTransactionRecognizer)transactionRecognizer;
+        tr.useInitPos((GTidBinlogPosition)loadPos);
     }
 
     @PreDestroy

@@ -23,7 +23,7 @@ public class BinlogFileBinlogPosition implements BinlogPosition {
     }
 
     @Override
-    public Request packetDumpRequest(int serverId, String extendGtId) {
+    public Request packetDumpRequest(int serverId) {
         DumpRequest request = new DumpRequest(pos, serverId, binlogFileName);
         return request;
     }
