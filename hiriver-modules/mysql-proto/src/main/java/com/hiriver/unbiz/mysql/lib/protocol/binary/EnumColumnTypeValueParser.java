@@ -15,7 +15,8 @@ public class EnumColumnTypeValueParser implements ColumnTypeValueParser {
     @Override
     public Object parse(byte[] buf, Position pos, ColumnDefinition columnDef, int meta) {
         int value = 0;
-        switch (meta >>> 8) {
+        int flag = meta & 0xff;
+        switch (flag) {
             case 1:
                 value = MysqlNumberUtils.read1Int(buf, pos);
                 break;
