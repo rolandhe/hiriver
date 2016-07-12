@@ -36,7 +36,7 @@ public class GTIDTransactionRecognizer extends AbstractTransactionRecognizer imp
         if (gtIdString == null) {
             return null;
         }
-        return getFullGtIdString(gtIdString);
+        return getFullGtIdString();
     }
 
     @Override
@@ -44,16 +44,10 @@ public class GTIDTransactionRecognizer extends AbstractTransactionRecognizer imp
         return gtIdString;
     }
 
-    private GTidBinlogPosition getFullGtIdString(String gtid) {
-        GtId gi = new GtId(gtid);
+    private GTidBinlogPosition getFullGtIdString() {
         StringBuilder sb = new StringBuilder();
         for (String uuid : gtIdMap.keySet()) {
-            if (uuid.equalsIgnoreCase(gi.getUuid())) {
-                sb.append(gi.toString());
-                sb.append(",");
-                continue;
-            }
-            sb.append(gtIdMap.get(uuid).cloneNextGtId().toString());
+            sb.append(gtIdMap.get(uuid).cloneGtId().toString());
             sb.append(",");
         }
         return new GTidBinlogPosition(sb.substring(0, sb.length() - 1));
@@ -61,6 +55,9 @@ public class GTIDTransactionRecognizer extends AbstractTransactionRecognizer imp
 
     private void applyGtIdString(String gtid) {
         GtId gi = new GtId(gtid);
+        if(gtIdMap.containsKey(gi.getUuid())){
+            gtIdMap.remove(gi.getUuid());
+        }
         gtIdMap.put(gi.getUuid(), gi);
     }
 

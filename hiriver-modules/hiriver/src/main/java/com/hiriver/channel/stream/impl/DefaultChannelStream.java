@@ -488,7 +488,7 @@ public class DefaultChannelStream implements ChannelStream {
         if (context.getNextPos() != null) {
             LOG.info("load binlog position {} from mem,channelId is {}.", context.getNextPos().toString(),
                     this.channelId);
-            return context.getNextPos();
+            return adaptConfigPos(context.getNextPos());
         }
         BinlogPosition loadPos = this.binlogPositionStore.load(channelId);
         if (loadPos != null) {
@@ -497,7 +497,7 @@ public class DefaultChannelStream implements ChannelStream {
             }
             LOG.info("load binlog position {} from store,channelId is {}.", loadPos.toString(), this.channelId);
             setupInitGtIdPos(loadPos);
-            return loadPos;
+            return adaptConfigPos(loadPos);
         }
         if (this.configBinlogPos != null) {
             LOG.info("load binlog position {} from configure,channelId is {}.", configBinlogPos.toString(),
@@ -508,20 +508,20 @@ public class DefaultChannelStream implements ChannelStream {
         }
         throw new RuntimeException("can not find binlog position.");
     }
-    
-    private BinlogPosition adaptConfigPos(BinlogPosition confPos){
-        if(!this.isGtId()){
+
+    private BinlogPosition adaptConfigPos(BinlogPosition confPos) {
+        if (!this.isGtId()) {
             return confPos;
         }
-        return ((GTidBinlogPosition)confPos).fixConfPos();
+        return ((GTidBinlogPosition) confPos).fixConfPos();
     }
-    
-    private void setupInitGtIdPos(BinlogPosition loadPos){
-        if(!this.isGtId()){
+
+    private void setupInitGtIdPos(BinlogPosition loadPos) {
+        if (!this.isGtId()) {
             return;
         }
-        GTIDTransactionRecognizer tr = (GTIDTransactionRecognizer)transactionRecognizer;
-        tr.useInitPos((GTidBinlogPosition)loadPos);
+        GTIDTransactionRecognizer tr = (GTIDTransactionRecognizer) transactionRecognizer;
+        tr.useInitPos((GTidBinlogPosition) loadPos);
     }
 
     @PreDestroy

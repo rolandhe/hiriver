@@ -41,7 +41,7 @@ public class GTidDumpRequest extends AbstractRequest {
 
             out.safeWrite(MysqlNumberUtils.writeNLong(1L, 8)); // n_intervals
             out.safeWrite(MysqlNumberUtils.writeNLong(gi.getInternel().getStart(), 8)); // start
-            out.safeWrite(MysqlNumberUtils.writeNLong(gi.getInternel().getStop(), 8)); // stop
+            out.safeWrite(MysqlNumberUtils.writeNLong(gi.getInternel().getStop()==1?2:gi.getInternel().getStop(), 8)); // stop
         }
     }
 

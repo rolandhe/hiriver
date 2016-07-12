@@ -20,9 +20,9 @@ public class GtIdInterval {
             this.start = 1L;
             end = Long.parseLong(internelString);
         }
-        if (end == 1L) {
-            end++;
-        }
+//        if (end == 1L) {
+//            end++;
+//        }
         this.stop = end;
     }
 
