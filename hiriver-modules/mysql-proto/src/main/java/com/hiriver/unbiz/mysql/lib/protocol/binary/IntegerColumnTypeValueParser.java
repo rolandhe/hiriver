@@ -21,14 +21,20 @@ public class IntegerColumnTypeValueParser implements ColumnTypeValueParser {
     public Object parse(byte[] buf, Position pos, ColumnDefinition columnDef, int meta) {
         if (columnDef.isUnsigned()) {
             long value = MysqlNumberUtils.readNInt(buf, pos, len);
-//            if (len <= 4 && value <= Integer.MAX_VALUE) {
-//                return Integer.valueOf((int) value);
-//            }
+            if (isShort()) {
+                return (int) value;
+            }
             return Long.valueOf(value);
         } else {
             int value = MysqlNumberUtils.readNRawInt(buf, pos, len);
+            if(isShort()){
+                return Integer.valueOf((short)value);
+            }
             return Integer.valueOf(value);
         }
     }
 
+    private boolean isShort() {
+        return len == 2;
+    }
 }
