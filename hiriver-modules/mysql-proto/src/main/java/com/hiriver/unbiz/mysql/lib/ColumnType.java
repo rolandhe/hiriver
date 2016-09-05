@@ -25,7 +25,7 @@ public enum ColumnType {
     MYSQL_TYPE_YEAR(0x0d, 0),
     MYSQL_TYPE_NEWDATE(0x0e, 0),
     MYSQL_TYPE_VARCHAR(0x0f, 2),
-    MYSQL_TYPE_BIT(0x10, 0), 
+    MYSQL_TYPE_BIT(0x10, 2), 
     MYSQL_TYPE_TIMESTAMP2(0x11, 1),
     MYSQL_TYPE_DATETIME2(0x12, 1), // since mysql5.6, should be 1
     MYSQL_TYPE_TIME2(0x13, 0),
