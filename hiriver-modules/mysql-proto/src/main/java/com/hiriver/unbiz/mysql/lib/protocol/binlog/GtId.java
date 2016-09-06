@@ -1,5 +1,7 @@
 package com.hiriver.unbiz.mysql.lib.protocol.binlog;
 
+import java.util.UUID;
+
 /**
  * 单个gtid，uuid:[12-]45
  * 
@@ -27,6 +29,7 @@ public class GtId {
     public GtId(String gtidInfoString) {
         String[] array = gtidInfoString.split(":");
         uuid = array[0];
+        UUID.fromString(uuid);
         this.internel = new GtIdInterval(array[1]);
     }
 
