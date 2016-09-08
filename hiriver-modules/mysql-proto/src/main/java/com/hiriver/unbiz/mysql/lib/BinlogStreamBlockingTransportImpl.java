@@ -350,8 +350,9 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
         if (!filter(event)) {
             return null;
         }
-        event.parse(buf, pos);
         event.acceptOccurTime(eventHeader.getTimestamp());
+        event.parse(buf, pos);
+        
         return event;
     }
 

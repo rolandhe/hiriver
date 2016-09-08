@@ -19,14 +19,14 @@ public class SampleConsumer extends AbstractConsumer implements Consumer {
 
     @Override
     protected void consumeRowData(final BinlogDataSet rowData) {
-
+        LOG.info("out put data {}", rowData.getRowDataMap().size());
         for (String tb : rowData.getRowDataMap().keySet()) {
             LOG.info("=======start table:" + tb + "=======");
             List<BinlogResultRow> rowList = rowData.getRowDataMap().get(tb);
 
             int index = 0;
             for (BinlogResultRow row : rowList) {
-                LOG.info("=======start row [" + (index) + "]=======");
+                LOG.info("=======start row [{}]=======,{}", index, row.getBinlogOccurTime());
                 if (row.getRowModifyType() == RowModifyTypeEnum.INSERT) {
                     outputRow(row.getAfterColumnValueList());
                 }

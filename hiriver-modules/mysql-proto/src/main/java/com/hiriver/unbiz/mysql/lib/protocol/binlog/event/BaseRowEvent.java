@@ -139,15 +139,15 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
         while (pos.getPos() < maxLen) {
             if (isUpdate()) {
                 rowList.add(new BinlogResultRow(parseRow(columnsNotNullBitmap, buf, pos, tableMeta),
-                        parseVerRowForUpdate(buf, pos, tableMeta), RowModifyTypeEnum.UPDATE));
+                        parseVerRowForUpdate(buf, pos, tableMeta), RowModifyTypeEnum.UPDATE, this.getOccurTime()));
             }
             if (isInsert()) {
                 rowList.add(new BinlogResultRow(nullList, parseRow(columnsNotNullBitmap, buf, pos, tableMeta),
-                        RowModifyTypeEnum.INSERT));
+                        RowModifyTypeEnum.INSERT, this.getOccurTime()));
             }
             if (isDelete()) {
                 rowList.add(new BinlogResultRow(parseRow(columnsNotNullBitmap, buf, pos, tableMeta), nullList,
-                        RowModifyTypeEnum.DELETE));
+                        RowModifyTypeEnum.DELETE, this.getOccurTime()));
             }
 
         }
@@ -213,7 +213,6 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
         doParseColumn(buf, pos, columnValueList, columnDef, meta, realType);
     }
 
-    
     private void doParseColumn(byte[] buf, Position pos, final List<BinlogColumnValue> columnValueList,
             ColumnDefinition columnDef, int meta, ColumnType columnType) {
         try {
