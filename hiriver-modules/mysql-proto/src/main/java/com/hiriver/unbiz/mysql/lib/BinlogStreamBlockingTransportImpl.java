@@ -261,7 +261,7 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
             return true;
         }
         if (event instanceof TableMapEvent) {
-            context.setTableMapEvent((TableMapEvent) event);
+            context.putCurrentTableMapEvent((TableMapEvent) event);
             return true;
         }
         return false;

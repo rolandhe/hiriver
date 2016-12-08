@@ -149,11 +149,7 @@ public class TableMapEvent extends AbstractBinlogEvent implements BinlogEvent {
     public byte[] getNullBitmap() {
         return nullBitmap;
     }
-
-    public FormatDescriptionEvent getFormatDescriptionEvent() {
-        return formatDescriptionEvent;
-    }
-
+    
     public List<InternelColumnDefinition> getColumnDefList() {
         return columnDefList;
     }

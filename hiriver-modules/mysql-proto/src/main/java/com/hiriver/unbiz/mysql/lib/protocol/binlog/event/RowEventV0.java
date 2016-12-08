@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.hiriver.unbiz.mysql.lib.output.BinlogColumnValue;
 import com.hiriver.unbiz.mysql.lib.protocol.Position;
+import com.hiriver.unbiz.mysql.lib.protocol.binlog.BinlogContext;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.BinlogEvent;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.TableMeta;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.TableMetaProvider;
@@ -17,9 +18,9 @@ import com.hiriver.unbiz.mysql.lib.protocol.binlog.TableMetaProvider;
  */
 public class RowEventV0 extends BaseRowEvent implements BinlogEvent {
 
-    public RowEventV0(TableMapEvent tableMapEvent, TableMetaProvider tableMetaProvider, int eventType,
+    public RowEventV0(BinlogContext binlogContext, TableMetaProvider tableMetaProvider, int eventType,
             final long eventBinlogPos, boolean hasCheckSum) {
-        super(tableMapEvent, tableMetaProvider, eventType, eventBinlogPos, hasCheckSum);
+        super(binlogContext, tableMetaProvider, eventType, eventBinlogPos, hasCheckSum);
     }
 
     @Override

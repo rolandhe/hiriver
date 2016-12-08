@@ -15,6 +15,7 @@ import com.hiriver.unbiz.mysql.lib.output.ColumnDefinition;
 import com.hiriver.unbiz.mysql.lib.output.RowModifyTypeEnum;
 import com.hiriver.unbiz.mysql.lib.protocol.Position;
 import com.hiriver.unbiz.mysql.lib.protocol.binary.ColumnTypeValueParserFactory;
+import com.hiriver.unbiz.mysql.lib.protocol.binlog.BinlogContext;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.BinlogEvent;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.BinlogEventType;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.TableMeta;
@@ -38,7 +39,7 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
     /**
      * 该事件所对应表的元数据描述，mysql server发送row事件数据之前要先发送该事件
      */
-    protected final TableMapEvent tableMapEvent;
+    protected final BinlogContext binlogContext;
     protected final TableMetaProvider tableMetaProvider;
     protected final List<BinlogResultRow> rowList = new LinkedList<BinlogResultRow>();
 
@@ -47,18 +48,19 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
     private byte[] columnsNotNullBitmap;
 
     public String getFullTableName() {
-        return tableMapEvent.getFullTableName();
+        return this.getTableMapEvent().getFullTableName();
     }
 
+    
     public List<ColumnDefinition> getColumnDefinitionList() {
-        return tableMetaProvider.getTableMeta(tableId, tableMapEvent.getSchema(), tableMapEvent.getTableName())
+        return tableMetaProvider.getTableMeta(tableId, getTableMapEvent().getSchema(), getTableMapEvent().getTableName())
                 .getColumnMetaList();
     }
 
-    protected BaseRowEvent(TableMapEvent tableMapEvent, TableMetaProvider tableMetaProvider, int eventType,
+    protected BaseRowEvent(BinlogContext binlogContext, TableMetaProvider tableMetaProvider, int eventType,
             final long eventBinlogPos, boolean hasCheckSum) {
         super(eventBinlogPos, hasCheckSum);
-        this.tableMapEvent = tableMapEvent;
+        this.binlogContext = binlogContext;
         this.tableMetaProvider = tableMetaProvider;
         this.eventType = eventType;
     }
@@ -108,7 +110,7 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
 
     @Override
     public void parse(byte[] buf, Position pos) {
-        if (tableMapEvent.getFormatDescriptionEvent().getPostHeaderLen(eventType) == 6) {
+        if (binlogContext.getForamtDescEvent().getPostHeaderLen(eventType) == 6) {
             tableId = MysqlNumberUtils.readNInt(buf, pos, 4);
         } else {
             tableId = MysqlNumberUtils.read6Int(buf, pos);
@@ -118,19 +120,19 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
 
         parseVerPostHeader(buf, pos);
         columnCount = (int) MysqlNumberUtils.readLencodeLong(buf, pos);
-        if (this.tableMapEvent.getColumnCount() < columnCount) {
+        if (this.getTableMapEvent().getColumnCount() < columnCount) {
             LOG.error("db {},table {}, binlog column count is {},but current table column is {} ",
-                    tableMapEvent.getSchema(), tableMapEvent.getTableName(), columnCount,
-                    tableMapEvent.getColumnCount());
+                getTableMapEvent().getSchema(), getTableMapEvent().getTableName(), columnCount,
+                getTableMapEvent().getColumnCount());
 
-            throw new TableAlreadyModifyExp(tableMapEvent.getSchema() + "." + tableMapEvent.getTableName());
+            throw new TableAlreadyModifyExp(getTableMapEvent().getSchema() + "." + getTableMapEvent().getTableName());
         }
         columnsNotNullBitmap = readNotNullBitmap(buf, pos);
         if (isUpdate()) {
             parseVerBodyForUpdate(buf, pos);
         }
         TableMeta tableMeta =
-                tableMetaProvider.getTableMeta(tableId, tableMapEvent.getSchema(), tableMapEvent.getTableName());
+                tableMetaProvider.getTableMeta(tableId, getTableMapEvent().getSchema(), getTableMapEvent().getTableName());
         List<BinlogColumnValue> nullList = Collections.emptyList();
         int maxLen = buf.length;
         if (super.isHasCheckSum()) {
@@ -180,8 +182,8 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
             if (isNullInRow(nullBitmapIndex, rowNullBitmap)) {
                 columnValueList.add(new BinlogColumnValue(columnDef, null));
             } else {
-                int meta = tableMapEvent.getColumnDefList().get(i).getMeta();
-                ColumnType typeInBinlog = tableMapEvent.getColumnDefList().get(i).getColumnType();
+                int meta = getTableMapEvent().getColumnDefList().get(i).getMeta();
+                ColumnType typeInBinlog = getTableMapEvent().getColumnDefList().get(i).getColumnType();
                 parseEachColumnOfRow(buf, pos, columnValueList, columnDef, meta, typeInBinlog);
             }
             nullBitmapIndex++;
@@ -202,7 +204,7 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
         try {
             realType = prepareForTypeString(meta, lengthHolder);
         } catch (InvalidColumnType e) {
-            LOG.info("{},{}", tableMapEvent.getTableName(), columnDef.getColumName());
+            LOG.info("{},{}", getTableMapEvent().getTableName(), columnDef.getColumName());
             throw e;
         }
         if (realType == ColumnType.MYSQL_TYPE_STRING) {
@@ -225,7 +227,7 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
             }
             LOG.error(
                     "parse column value error, maybe you add new column in middle of all columns.{},{},binlog type:{},table type {},charset {}, first column value {}",
-                    tableMapEvent.getTableName(), columnDef.getColumName(), columnType.getTypeValue(),
+                    getTableMapEvent().getTableName(), columnDef.getColumName(), columnType.getTypeValue(),
                     columnDef.getType().getTypeValue(), columnDef.getCharset().getCharsetName(), firstValue);
             throw new FetalParseValueExp(e);
         }
@@ -281,8 +283,12 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
     public List<BinlogResultRow> getRowList() {
         return rowList;
     }
+    
 
     public TableMapEvent getTableMapEvent() {
-        return tableMapEvent;
+      if (tableId == 0){
+        throw new RuntimeException("TableMapEvent is not parsed!");
+      }
+        return this.binlogContext.getTableMapEventByTableId(tableId);
     }
 }

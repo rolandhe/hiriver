@@ -2,14 +2,19 @@ package com.hiriver.local;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hiriver.unbiz.mysql.lib.ColumnType;
 import com.hiriver.unbiz.mysql.lib.MyCharset;
+import com.hiriver.unbiz.mysql.lib.output.BinlogColumnValue;
+import com.hiriver.unbiz.mysql.lib.output.BinlogResultRow;
 import com.hiriver.unbiz.mysql.lib.output.ColumnDefinition;
+import com.hiriver.unbiz.mysql.lib.output.RowModifyTypeEnum;
 import com.hiriver.unbiz.mysql.lib.protocol.Position;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.BinlogContext;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.BinlogEvent;
@@ -25,7 +30,6 @@ import com.hiriver.unbiz.mysql.lib.protocol.binlog.event.FormatDescriptionEvent;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.event.GTidEvent;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.event.QueryEvent;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.event.RotateEvent;
-import com.hiriver.unbiz.mysql.lib.protocol.binlog.event.RowEventV1;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.event.TableMapEvent;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.event.XidEvent;
 
@@ -55,7 +59,7 @@ public class LocalBinlogReader {
             @Override
             public TableMeta getTableMeta(long tableId, String schemaName, String tableName) {
                 TableMeta meta = new TableMeta(tableId);
-                TableMapEvent tme = context.getTableMapEvent();
+                TableMapEvent tme = context.getTableMapEventByTableId(tableId);
                 int index = 0;
                 for (InternelColumnDefinition def : tme.getColumnDefList()) {
                     ColumnDefinition cdf = new ColumnDefinition();
@@ -115,12 +119,12 @@ public class LocalBinlogReader {
         int allCount = 0;
         while (true) {
             BinlogEvent event = readEvent(fs);
-            if (event.getBinlogEventPos() == 509054727L) {
-                System.out.println("hehe");
-            }
+//            if (event.getBinlogEventPos() == 509054727L) {
+//                System.out.println("hehe");
+//            }
 
             if (event instanceof TableMapEvent) {
-                context.setTableMapEvent((TableMapEvent) event);
+                context.putCurrentTableMapEvent((TableMapEvent) event);
                 // if( context.getTableMapEvent().getTableName().startsWith("huichuan_ad.")){
                 // System.out.println("gogo");
                 // }
@@ -145,10 +149,35 @@ public class LocalBinlogReader {
             if (out.getEventType() == ValidEventType.ROW) {
                 BaseRowEvent rowEvent = (BaseRowEvent) out.getEvent();
                 String tableName = rowEvent.getTableMapEvent().getFullTableName();
-                if(tableName.indexOf("sentinel") > 0){
-                    System.out.println(rowEvent.getRowList().get(0).getAfterColumnValueList());
-                }
-                if (tableName.startsWith("wolong_0003.tb_winfo_") && tableName.indexOf("stat") == -1) {
+//                if(tableName.indexOf("sentinel") > 0){
+//                    System.out.println(rowEvent.getRowList().get(0).getAfterColumnValueList());
+//                }
+                if (tableName.equalsIgnoreCase("accounting.user_accounting")) {
+                  List<BinlogResultRow> rowList = rowEvent.getRowList();
+                  for(BinlogResultRow row: rowList){
+                    if(row.getRowModifyType() != RowModifyTypeEnum.UPDATE){
+                      continue;
+                    }
+                   if( row.getBeforeColumnValueList().get(0).getValue().equals(16277306L)){
+                     System.out.println("time:" + row.getBinlogOccurTime());
+                     int index = 0;
+                     for(BinlogColumnValue colValue : row.getBeforeColumnValueList()){
+                       
+                       BinlogColumnValue after = row.getAfterColumnValueList().get(index++);
+                       System.out.println(colValue.getDefinition().getColumName());
+                       System.out.println(colValue.getValue());
+                       System.out.println(after.getValue());
+                       System.out.println("===========================================");
+                       
+//                       if(colValue.getDefinition().getColumName().equals("@7")){
+//                         String json = (String)colValue.getValue();
+//                         FileOutputStream os = new FileOutputStream("/Users/hexiufeng/data/err/iead.json");
+//                         os.write(json.getBytes("UTF-8"));
+//                         os.close();
+//                       }
+                     }
+                   }
+                  }
                     wordCount++;
                 }
                 allCount++;
@@ -157,8 +186,8 @@ public class LocalBinlogReader {
             if (out.getEventType() == ValidEventType.TRANS_COMMIT) {
 
                 // if (count > 0) {
-                System.out.println(
-                        gtid + " " + wordCount + " " + allCount + " commit" + " " + out.getEvent().getOccurTime());
+//                System.out.println(
+//                        gtid + " " + wordCount + " " + allCount + " commit" + " " + out.getEvent().getOccurTime());
                 // }
                 gtid = "";
                 allCount = 0;
@@ -166,7 +195,7 @@ public class LocalBinlogReader {
                 continue;
             }
             if (out.getEventType() == ValidEventType.TRANS_ROLLBACK) {
-                System.out.println(gtid + "$rollback ");
+//                System.out.println(gtid + "$rollback ");
                 gtid = "";
                 allCount = 0;
                 wordCount = 0;

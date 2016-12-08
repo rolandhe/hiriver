@@ -25,17 +25,17 @@ public class EventFactory {
             case BinlogEventType.WRITE_ROWS_EVENTv0:
             case BinlogEventType.UPDATE_ROWS_EVENTv0:
             case BinlogEventType.DELETE_ROWS_EVENTv0:
-                return new RowEventV0(context.getTableMapEvent(), context.getTableMetaProvider(), eventType,
+                return new RowEventV0(context, context.getTableMetaProvider(), eventType,
                         binlogEventPos, hasCheckSum);
             case BinlogEventType.WRITE_ROWS_EVENTv1:
             case BinlogEventType.UPDATE_ROWS_EVENTv1:
             case BinlogEventType.DELETE_ROWS_EVENTv1:
-                return new RowEventV1(context.getTableMapEvent(), context.getTableMetaProvider(), eventType,
+                return new RowEventV1(context, context.getTableMetaProvider(), eventType,
                         binlogEventPos, hasCheckSum);
             case BinlogEventType.WRITE_ROWS_EVENTv2:
             case BinlogEventType.UPDATE_ROWS_EVENTv2:
             case BinlogEventType.DELETE_ROWS_EVENTv2:
-                return new RowEventV2(context.getTableMapEvent(), context.getTableMetaProvider(), eventType,
+                return new RowEventV2(context, context.getTableMetaProvider(), eventType,
                         binlogEventPos, hasCheckSum);
             case BinlogEventType.STOP_EVENT:
                 return new StopEvent(binlogEventPos, hasCheckSum);
