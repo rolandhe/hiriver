@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -59,6 +61,15 @@ public class DefaultChannelStream implements ChannelStream {
     };
 
     /**
+     *
+     *  {@link com.hiriver.channel.stream.impl.DefaultChannelBuffer} 是线程不安全的，不能被多个
+     *  {@link com.hiriver.channel.stream.impl.DefaultChannelStream}使用，需要防止重复
+     *
+     *
+     */
+    private static  final ConcurrentMap<DefaultChannelBuffer,DefaultChannelBuffer> BUFFER_REGISTER = new ConcurrentHashMap<>();
+
+    /**
      * 描述是否要跳过当前事务数据，用于GTID模式
      */
     private boolean isSkipCurrentTrans = false;
@@ -85,7 +96,7 @@ public class DefaultChannelStream implements ChannelStream {
     private BinlogPositionStore binlogPositionStore;
     /**
      * 连接到mysql的数据流，可能是{@link com.hiriver.streamsource.impl.MysqlStreamSource}数据流， 也可能是
-     * {@link com.hiriver.streamsource.impl.MysqlStreamSource.HAStreamSource}数据流。如果是 mysql
+     * {@link com.hiriver.streamsource.impl.HAStreamSource}数据流。如果是 mysql
      * 5.6.9+版本，强烈建议使用GTID模式，并且使用HAStreamSource，系统能够自动的切换数据源，实现HA
      */
     private StreamSource streamSource;
@@ -181,12 +192,15 @@ public class DefaultChannelStream implements ChannelStream {
         this.fetalWaitTimeout = fetalWaitTimeout;
     }
 
+
+
     /**
      * 开启mysql binlog数据接收线程和数据消费线程
      */
     @PostConstruct
     @Override
     public void start() {
+        preventDefalutBufferRepeat();
         final CountDownLatch startProvide = new CountDownLatch(1);
         final CountDownLatch startConsumer = new CountDownLatch(1);
         createProviderThread(startProvide);
@@ -200,6 +214,16 @@ public class DefaultChannelStream implements ChannelStream {
             startConsumer.await(30000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             // ignore
+        }
+    }
+
+    private void preventDefalutBufferRepeat(){
+        if(!(channelBuffer instanceof  DefaultChannelBuffer)){
+            return;
+        }
+        DefaultChannelBuffer defaultChannelBuffer = (DefaultChannelBuffer)channelBuffer;
+        if(null != BUFFER_REGISTER.putIfAbsent(defaultChannelBuffer,defaultChannelBuffer)){
+            throw new RuntimeException("DefaultChannelBuffer is not thread safe, can't repeat.");
         }
     }
 

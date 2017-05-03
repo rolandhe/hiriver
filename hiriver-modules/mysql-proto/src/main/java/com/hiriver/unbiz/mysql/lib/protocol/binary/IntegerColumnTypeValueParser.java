@@ -21,7 +21,7 @@ public class IntegerColumnTypeValueParser implements ColumnTypeValueParser {
     public Object parse(byte[] buf, Position pos, ColumnDefinition columnDef, int meta) {
         if (columnDef.isUnsigned()) {
             long value = MysqlNumberUtils.readNInt(buf, pos, len);
-            if (isShort()) {
+            if (isShort() || isByte()) {
                 return (int) value;
             }
             return Long.valueOf(value);
@@ -30,11 +30,17 @@ public class IntegerColumnTypeValueParser implements ColumnTypeValueParser {
             if(isShort()){
                 return Integer.valueOf((short)value);
             }
+            if(isByte()){
+                return Integer.valueOf((byte)value);
+            }
             return Integer.valueOf(value);
         }
     }
 
     private boolean isShort() {
         return len == 2;
+    }
+    private  boolean isByte() {
+        return len ==  1;
     }
 }
