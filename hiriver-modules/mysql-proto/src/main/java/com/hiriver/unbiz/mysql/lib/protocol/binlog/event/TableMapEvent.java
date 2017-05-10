@@ -80,21 +80,6 @@ public class TableMapEvent extends AbstractBinlogEvent implements BinlogEvent {
                 }
             }
 
-            // copy from log_event_print_value function in log_event.cc
-            if (type == ColumnType.MYSQL_TYPE_STRING) {
-                if (meta >= 256) {
-                    int byte0 = meta & 0xFF;
-
-                    // 如果字段是string，则byte0必须是253，否则是其他类型
-                    if ((byte0 & 0x30) == 0x30 && byte0 != ColumnType.MYSQL_TYPE_VAR_STRING.getTypeValue()) {
-                        try {
-                            type = ColumnType.ofTypeValue(byte0);
-                        } catch (InvalidColumnType e) {
-                            // ignore
-                        }
-                    }
-                }
-            }
             boolean isNull = (nullBitmap[i / 8] & (1 << (i % 8))) != 0;
             columnDefList.add(new InternelColumnDefinition(type, meta, isNull));
         }

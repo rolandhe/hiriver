@@ -202,20 +202,16 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
       doParseColumn(buf, pos, columnValueList, columnDef, meta, typeInBinlog);
       return;
     }
+    // 处理MYSQL_TYPE_STRING，需要根据meta计算length，也可能重置数据类型和长度
     int[] lengthHolder = {0};
-    ColumnType realType = null;
+    ColumnType realType;
     try {
-      realType = prepareForTypeString(meta, lengthHolder);
+      realType = prepareForTypeString(meta, lengthHolder,columnDef.getColumName());
+      doParseColumn(buf, pos, columnValueList, columnDef, lengthHolder[0], realType);
     } catch (InvalidColumnType e) {
-      LOG.info("{},{}", getTableMapEvent().getTableName(), columnDef.getColumName());
+      LOG.info("{},{}", getTableMapEvent().getFullTableName(), columnDef.getColumName());
       throw e;
     }
-    if (realType == ColumnType.MYSQL_TYPE_STRING) {
-      doParseColumn(buf, pos, columnValueList, columnDef, lengthHolder[0], realType);
-      return;
-    }
-
-    doParseColumn(buf, pos, columnValueList, columnDef, meta, realType);
   }
 
   private void doParseColumn(byte[] buf, Position pos, final List<BinlogColumnValue> columnValueList,
@@ -237,19 +233,32 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
 
   }
 
-  private ColumnType prepareForTypeString(int meta, int[] lengthHolder) {
+  /**
+   *
+   * 针对于char类型所做的特殊处理，主要是重新修正length，参见log_event.cc#log_event_print_value
+   *
+   *
+   * @param meta
+   * @param lengthHolder
+   * @param columnName
+   * @return
+   */
+  private ColumnType prepareForTypeString(int meta, int[] lengthHolder, final String columnName) {
+    // from log_event.cc
     if (meta >= 256) {
-
-      int byte0 = meta & 0xff;
-      int byte1 = meta >>> 8;
+      // column type
+      int byte0 = meta >>> 8;
+      // length
+      int byte1 = meta & 0xff;
 
       if ((byte0 & 0x30) != 0x30) {
         /* a long CHAR() field: see #37426 */
-        lengthHolder[0] = byte0 | (((byte1 & 0x30) ^ 0x30) << 4);
-        return ColumnType.ofTypeValue(byte1 | 0x30);
+        lengthHolder[0] = byte1 | (((byte0 & 0x30) ^ 0x30) << 4);
+        LOG.info("change string type to {},length is {} of {}.{}", byte0 | 0x30,lengthHolder[0],getTableMapEvent()
+                .getFullTableName(),columnName);
+        return ColumnType.ofTypeValue(byte0 | 0x30);
       } else {
         lengthHolder[0] = meta & 0xff;
-        return ColumnType.ofTypeValue(byte0);
       }
     } else {
       lengthHolder[0] = meta;
