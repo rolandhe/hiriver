@@ -42,6 +42,20 @@ public class MysqlNumberUtils {
     }
 
     /**
+     * 读取2个大尾端字节的整数
+     *
+     * @param buf
+     * @param off
+     * @return
+     */
+    public static int read2BEInt(byte[] buf, Position off) {
+        int value = 0;
+        value |= leftShiftByte2int(buf[off.getAndForwordPos()], 8);
+        value |= leftShiftByte2int(buf[off.getAndForwordPos()]);
+        return value;
+    }
+
+    /**
      * 读取3个字节的整数
      * 
      * @param buf
@@ -53,6 +67,21 @@ public class MysqlNumberUtils {
         value |= leftShiftByte2int(buf[off.getAndForwordPos()]);
         value |= leftShiftByte2int(buf[off.getAndForwordPos()], 8);
         value |= leftShiftByte2int(buf[off.getAndForwordPos()], 16);
+        return value;
+    }
+
+    /**
+     * 读取3个大尾端字节的整数
+     *
+     * @param buf
+     * @param off
+     * @return
+     */
+    public static int read3BEInt(byte[] buf, Position off) {
+        int value = 0;
+        value |= leftShiftByte2int(buf[off.getAndForwordPos()], 16);
+        value |= leftShiftByte2int(buf[off.getAndForwordPos()], 8);
+        value |= leftShiftByte2int(buf[off.getAndForwordPos()]);
         return value;
     }
 
@@ -69,6 +98,22 @@ public class MysqlNumberUtils {
         value |= leftShiftByte2int(buf[off.getAndForwordPos()], 8);
         value |= leftShiftByte2int(buf[off.getAndForwordPos()], 16);
         value |= leftShiftByte2int(buf[off.getAndForwordPos()], 24);
+        return value;
+    }
+
+    /**
+     * 读取4个字节的整数
+     *
+     * @param buf
+     * @param off
+     * @return
+     */
+    public static int read4BEInt(byte[] buf, Position off) {
+        int value = 0;
+        value |= leftShiftByte2int(buf[off.getAndForwordPos()],24);
+        value |= leftShiftByte2int(buf[off.getAndForwordPos()], 16);
+        value |= leftShiftByte2int(buf[off.getAndForwordPos()], 8);
+        value |= leftShiftByte2int(buf[off.getAndForwordPos()], 0);
         return value;
     }
 

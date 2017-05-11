@@ -75,7 +75,7 @@ public class ColumnTypeValueParserFactory {
             case MYSQL_TYPE_TIME2:
                 return new Time2ColumnTypeValueParser();
             case MYSQL_TYPE_NEWDECIMAL:
-                return new NewDecimalColumnTypeValueParser();
+                return new DecimalColumnTypeValueParser();
             case MYSQL_TYPE_ENUM:
                 return new EnumColumnTypeValueParser();
             case MYSQL_TYPE_SET:
