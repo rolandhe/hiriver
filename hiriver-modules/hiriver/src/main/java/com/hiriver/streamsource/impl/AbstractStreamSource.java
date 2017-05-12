@@ -22,10 +22,6 @@ public abstract  class AbstractStreamSource implements StreamSource {
      * 从库id，hiriver是从库
      */
     private int serverId;
-    /**
-     * mysql是否开启了crc32数据校验
-     */
-    private boolean checkSum = true;
     private int maxMaxPacketSize = 0;
     
     /**
@@ -63,13 +59,7 @@ public abstract  class AbstractStreamSource implements StreamSource {
     public void setServerId(int serverId) {
         this.serverId = serverId;
     }
-    public boolean isCheckSum() {
-        return checkSum;
-    }
 
-    public void setCheckSum(boolean checkSum) {
-        this.checkSum = checkSum;
-    }
     public TableFilter getTableFilter() {
         return tableFilter;
     }

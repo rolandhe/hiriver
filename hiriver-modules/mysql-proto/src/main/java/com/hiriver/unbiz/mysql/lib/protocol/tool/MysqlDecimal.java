@@ -7,8 +7,23 @@ import java.math.BigDecimal;
 
 /**
  * 用于描述、解析mysql binlog格式的decimal类型数据。该逻辑来自mysql源码中的 decimal.c, decimal2bin and bin2decimal. <br>
+ * <p>
+ *   decimal 是用来描述十进制大实数值的，包括整数和小数部分，它有 precision和scale两个属性，precision表示该数值最大位数（包括小数，但不包括小数点），
+ *   scale表示小数位数，比如，1234.23， 它的precision=6，scale=2，因此它的整数部分的长度是4.
+ *   decimal 在计算机内使用变长字节存储，其字节长度会超过8个，根据decimal的数值增大而变长。decimal是十进制的，在它被转化为二进制的过程中
+ *   也是使用十进制计算的。
+ *   decimal分为小数部分和整数部分，根据precision和scale可以计算出其二进制字节数据，具体参见构造方法。在转化过程中无论是整数部分还是小数部分
+ *   都是先按照十进制的位数进行分段，每9位分为一段，每段使用一个int描述，整数部分从低位开始分段，小数部分从高位开始分段，最后一段（简称尾段）可能不足9位。
+ *   9位段占满4字节，而尾段根据其位数的不同而占的字节数不同，具体参见{@link #DIG2BYTES}, 位数即数组下标。比如：<br>
+ *   713234568987.0345678992, 被划分成 713 234568987 034567899 2， 713 是整数部分的尾段，占3个字节，占1个字节， 2是小数部分的尾段，
+ *   234568987 是整数部分中9位段，占4个字节，注意都是大尾端，034567899是小数部分的9位段，也占4个字节，整个二进制按照 713，234568987，
+ *   034567899，2顺序从低位向高位摆放。
+ *   符号表示：
+ *   如果是正数，二进制数组的第0个元素^0x80
+ *   如果是负数，绝对值转化为二进制后挨个取反，再第0个元素^0x80
+ * </p>
  *
- *
+
  * Created by hexiufeng on 2017/5/11.
  */
 public class MysqlDecimal {
@@ -119,9 +134,12 @@ public class MysqlDecimal {
     Position pos = Position.factory();
     sign = (buf[0] & 0x80) == 0;
     buf[0] ^= 0x80;
-    int mask = sign?-1:0;
-    for(int i = 0; i < buf.length;i++){
-      buf[i] ^= mask;
+
+    if(sign) {
+      for (int i = 0; i < buf.length; i++) {
+        // 哈哈，取反实现
+        buf[i] ^= 0xff;
+      }
     }
     parseIntSection(buf, pos);
 
@@ -245,6 +263,7 @@ public class MysqlDecimal {
   private void convertInt2Char(int value,int digitLen, final SimpleStringBuilder sb){
     for(int i = digitLen - 1; i >=0;i--){
       int digit = value / POWERS10[i];
+      // 使用算术运算完成字符数字向字符的转化，提高性能
       digit += ZERO_ASCII;
       sb.append((char)digit);
       value = value % POWERS10[i];
@@ -288,7 +307,9 @@ public class MysqlDecimal {
 
   /**
    * 简单的用于拼接字符的容器，指定固定的长度，顺序拼接，
-   * 一次初始化内部存储，不动态扩容，也不复制
+   * 一次初始化内部存储，不动态扩容，也不复制.
+   *
+   * 直接使用char而不是string，减少转化，提高性能
    *
    */
   private  static  class SimpleStringBuilder{
@@ -303,14 +324,5 @@ public class MysqlDecimal {
     char[] toCharArray(){
       return buf;
     }
-  }
-  public  static  void  main(String[] args){
-    int precision=18;
-    int scale = 4;
-    byte[] buf = {(byte)0x80,0x0,0x1,0xD,(byte)0xFB,0x38,(byte)0xD2,0x4,(byte)0xD2};
-//        byte[] buf = {127, -1, -2, -14, 4, -57, 45, -5, 45};
-    MysqlDecimal myDecimal = new MysqlDecimal(precision,scale);
-    myDecimal.parse(buf);
-    System.out.println(myDecimal.toDecimal());
   }
 }

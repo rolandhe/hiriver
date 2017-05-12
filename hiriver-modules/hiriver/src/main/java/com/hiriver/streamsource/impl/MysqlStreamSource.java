@@ -29,7 +29,6 @@ public class MysqlStreamSource extends AbstractStreamSource implements StreamSou
         t.setServerId(super.getServerId());
         t.setTransportConfig(super.getTransportConfig());
         t.setTableFilter(getTableFilter());
-        t.setCheckSum(super.isCheckSum());
         t.setMaxMaxPacketSize(super.getMaxMaxPacketSize());
         transport = t;
     }

@@ -56,7 +56,7 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
   private final BinlogContext context = new BinlogContext();
   private int serverId;
   private TableFilter tableFilter;
-  private boolean checkSum = true;
+  private boolean checkSum = false;
 
   private Position defaultPos = Position.factory();
   /**
@@ -144,19 +144,43 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
     return LOGGER;
   }
 
-  public boolean isCheckSum() {
-    return checkSum;
-  }
-
-  public void setCheckSum(boolean checkSum) {
-    this.checkSum = checkSum;
+  @Override
+  protected void afterOpen(){
+    autoDectectCheckSum();
+    if (checkSum) {
+      int affectRows = executeSQL("SET @master_binlog_checksum= @@global.binlog_checksum");
+      getSubClassLogger().info("set checkSum, result is {}.", affectRows);
+    }
   }
 
   @Override
   protected void intiTransport(String sql) {
-    if (checkSum) {
-      int affectRows = executeSQL("SET @master_binlog_checksum= @@global.binlog_checksum");
-      getSubClassLogger().info("set checkSum, result is {}.", affectRows);
+    String upSql = sql.toUpperCase().replaceAll("\\s+", " ");
+    // binlog 不需要事务
+    if(upSql.startsWith("SET AUTOCOMMIT")){
+      return;
+    }
+    executeSQL(sql);
+  }
+
+  /**
+   * 从数据库中刷新是否开启了checksum
+   */
+  private void autoDectectCheckSum(){
+    TextProtocolBlockingTransport textTrans = new TextProtocolBlockingTransportImpl(getHost(), getPort(),
+            getUserName(), getPassword(), getTransportConfig());
+
+    textTrans.open();
+    try {
+      TextCommandQueryResponse response = textTrans.execute("show VARIABLES like 'binlog_checksum'");
+      if(response.getRowList().size() == 0){
+        return;
+      }
+      String checkSumValue = response.getRowList().get(0).getValueList().get(1).getValueAsString();
+      checkSum = !"NONE".equalsIgnoreCase(checkSumValue);
+      LOGGER.info("read checksum {} from db {}:{}.",checkSumValue,getHost(),getPort());
+    } finally {
+      textTrans.close();
     }
   }
 

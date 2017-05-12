@@ -34,6 +34,11 @@ public final class BinlogDataSet {
      * 当数据所在事务的gtid。在不支持gtid模式下，为null
      */
     private final String gtId;
+
+    /**
+     * 当前数据所在事务的binlogfile + pos
+     */
+    private final String binlogPos;
     /**
      * 是否是通知消费者记录同步点的信号数据包。如果是信号数据包：<br>
      * <ul>
@@ -58,22 +63,28 @@ public final class BinlogDataSet {
      */
     private final Map<String, List<BinlogResultRow>> rowDataMap = new LinkedHashMap<>();
 
-    public static BinlogDataSet createPositionStoreTrigger(String channelId, String sourceHostUrl, String gtId) {
-        return new BinlogDataSet(channelId, sourceHostUrl, gtId, true,false);
+    public static BinlogDataSet createPositionStoreTrigger(String channelId, String sourceHostUrl, String gtId,String
+            binlogPos) {
+        return new BinlogDataSet(channelId, sourceHostUrl, gtId,binlogPos, true,false);
     }
     
-    public static BinlogDataSet createStartTransEvent(String channelId, String sourceHostUrl, String gtId) {
-        return new BinlogDataSet(channelId, sourceHostUrl, gtId, false,true);
+    public static BinlogDataSet createStartTransEvent(String channelId, String sourceHostUrl, String gtId,String
+            binlogPos) {
+        return new BinlogDataSet(channelId, sourceHostUrl, gtId, binlogPos, false,true);
     }
 
-    public BinlogDataSet(String channelId, String sourceHostUrl, String gtId) {
-        this(channelId, sourceHostUrl, gtId, false,false);
+    public BinlogDataSet(String channelId, String sourceHostUrl, String gtId,String
+            binlogPos) {
+        this(channelId, sourceHostUrl, gtId, binlogPos,false,false);
     }
 
-    private BinlogDataSet(String channelId, String sourceHostUrl, String gtId, boolean isPositionStoreTrigger, boolean isStartTransEvent) {
+    private BinlogDataSet(String channelId, String sourceHostUrl, String gtId,String binlogPos, boolean
+            isPositionStoreTrigger,
+                          boolean isStartTransEvent) {
         this.channelId = channelId;
         this.sourceHostUrl = sourceHostUrl;
         this.gtId = gtId;
+        this.binlogPos = binlogPos;
         this.isPositionStoreTrigger = isPositionStoreTrigger;
         this.isStartTransEvent = isStartTransEvent;
     }
@@ -88,6 +99,10 @@ public final class BinlogDataSet {
 
     public String getGtId() {
         return gtId;
+    }
+
+    public String getBinlogPos(){
+        return binlogPos;
     }
 
     public Map<String, List<ColumnDefinition>> getColumnDefMap() {

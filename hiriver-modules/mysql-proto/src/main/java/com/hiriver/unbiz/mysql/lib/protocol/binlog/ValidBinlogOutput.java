@@ -57,5 +57,7 @@ public class ValidBinlogOutput {
         return event;
     }
     
-    
+    public String getEventBinlogPos(){
+        return binlogFileName + ":" + getEvent().getBinlogEventPos();
+    }
 }

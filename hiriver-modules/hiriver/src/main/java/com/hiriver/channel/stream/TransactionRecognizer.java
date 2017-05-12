@@ -44,4 +44,11 @@ public interface TransactionRecognizer {
      * @return 当前事务的gtid
      */
     String getGTId();
+
+    /**
+     * 读取事务的binlog pos
+     *
+     * @return
+     */
+    String getTransBinlogPos();
 }

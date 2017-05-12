@@ -126,6 +126,10 @@ public class TextProtocolBlockingTransportImpl extends AbstractBlockingTransport
     }
 
     @Override
+    protected void afterOpen(){
+        // do nothing
+    }
+    @Override
     protected void intiTransport(String sql) {
         LOGGER.info("init SQL:" + sql);
         executeSQL(sql);

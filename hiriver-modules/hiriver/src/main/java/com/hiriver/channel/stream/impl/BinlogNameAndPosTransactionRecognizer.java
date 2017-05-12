@@ -21,6 +21,7 @@ public class BinlogNameAndPosTransactionRecognizer extends AbstractTransactionRe
         if (start) {
             position = new BinlogFileBinlogPosition(validOutput.getBinlogFileName(),
                     validOutput.getEvent().getBinlogEventPos());
+            super.transBinlogPos = validOutput.getEventBinlogPos();
         }
         return start;
     }
@@ -31,6 +32,7 @@ public class BinlogNameAndPosTransactionRecognizer extends AbstractTransactionRe
         if (isEnd) {
             position = new BinlogFileBinlogPosition(validOutput.getBinlogFileName(),
                     validOutput.getEvent().getBinlogEventPos());
+            super.transBinlogPos = validOutput.getEventBinlogPos();
         }
         return isEnd;
     }

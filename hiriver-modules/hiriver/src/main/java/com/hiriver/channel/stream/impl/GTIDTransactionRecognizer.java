@@ -25,6 +25,7 @@ public class GTIDTransactionRecognizer extends AbstractTransactionRecognizer imp
         String newGtId = getNewGtId(validOutput);
         if (newGtId != null) {
             gtIdString = newGtId;
+            super.transBinlogPos = validOutput.getEventBinlogPos();
             applyGtIdString(newGtId);
             return true;
         }

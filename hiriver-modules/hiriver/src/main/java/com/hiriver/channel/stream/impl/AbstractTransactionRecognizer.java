@@ -11,6 +11,7 @@ import com.hiriver.unbiz.mysql.lib.protocol.binlog.ValidEventType;
  *
  */
 public abstract class AbstractTransactionRecognizer implements TransactionRecognizer {
+    protected String transBinlogPos;
     @Override
     public boolean isStart(ValidBinlogOutput validOutput) {
         if (validOutput.getEventType() == ValidEventType.TRAN_BEGIN) {
@@ -30,6 +31,11 @@ public abstract class AbstractTransactionRecognizer implements TransactionRecogn
     @Override
     public String getGTId() {
         return null;
+    }
+
+    @Override
+    public String getTransBinlogPos() {
+        return transBinlogPos;
     }
 
 }

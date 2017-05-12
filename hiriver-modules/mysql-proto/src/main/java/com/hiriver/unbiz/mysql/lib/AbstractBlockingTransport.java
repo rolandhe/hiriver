@@ -136,6 +136,11 @@ public abstract class AbstractBlockingTransport implements BlockingTransport {
     protected abstract Logger getSubClassLogger();
 
     /**
+     * 在打开socket后被调用
+     */
+    protected  abstract  void afterOpen();
+
+    /**
      * 初始链接.
      * <p>
      * 在连接刚被建立后可能需要执行一系列的初始化sql。
@@ -256,11 +261,14 @@ public abstract class AbstractBlockingTransport implements BlockingTransport {
             isOpeningPhrase = true;
             doHandShake();
             initOpenedTransport();
+            afterOpen();
         } finally {
             isOpeningPhrase = false;
         }
         isOpened = true;
     }
+
+
 
     /**
      * 与msyql完成握手后对连接进行初始化

@@ -19,7 +19,6 @@
         <property name="password" value="${password}"></property>
         <property name="hostUrl" value="${hostUrl}"></property>
         <property name="serverId" value="${serverId}"></property>
-        <property name="checkSum" value="${checkSum}"></property>
         <property name="transportConfig" ref="transportConfig" />
         <property name="tableFilter" ref="tableFilter"></property>
     </bean>

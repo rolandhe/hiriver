@@ -60,14 +60,6 @@ public class DefaultChannelStream implements ChannelStream {
 
     };
 
-    /**
-     *
-     *  {@link com.hiriver.channel.stream.impl.DefaultChannelBuffer} 是线程不安全的，不能被多个
-     *  {@link com.hiriver.channel.stream.impl.DefaultChannelStream}使用，需要防止重复
-     *
-     *
-     */
-    private static  final ConcurrentMap<DefaultChannelBuffer,DefaultChannelBuffer> BUFFER_REGISTER = new ConcurrentHashMap<>();
 
     /**
      * 描述是否要跳过当前事务数据，用于GTID模式
@@ -200,7 +192,6 @@ public class DefaultChannelStream implements ChannelStream {
     @PostConstruct
     @Override
     public void start() {
-        preventDefalutBufferRepeat();
         final CountDownLatch startProvide = new CountDownLatch(1);
         final CountDownLatch startConsumer = new CountDownLatch(1);
         createProviderThread(startProvide);
@@ -217,15 +208,6 @@ public class DefaultChannelStream implements ChannelStream {
         }
     }
 
-    private void preventDefalutBufferRepeat(){
-        if(!(channelBuffer instanceof  DefaultChannelBuffer)){
-            return;
-        }
-        DefaultChannelBuffer defaultChannelBuffer = (DefaultChannelBuffer)channelBuffer;
-        if(null != BUFFER_REGISTER.putIfAbsent(defaultChannelBuffer,defaultChannelBuffer)){
-            throw new RuntimeException("DefaultChannelBuffer is not thread safe, can't repeat.");
-        }
-    }
 
     /**
      * 创建接收mysql binlog数据流的线程
@@ -288,7 +270,7 @@ public class DefaultChannelStream implements ChannelStream {
             }
             if (transactionRecognizer.isStart(validOutput)) {
                 BinlogDataSet ds = BinlogDataSet.createStartTransEvent(this.channelId, streamSource.getHostUrl(),
-                        transactionRecognizer.getGTId());
+                        transactionRecognizer.getGTId(), transactionRecognizer.getTransBinlogPos());
                 ensureDispatch(new DefaultBufferableBinlogDataSet(ds));
 
                 LOG.info("{},start trans {}", this.channelId, transactionRecognizer.getCurrentTransBeginPos());
@@ -397,7 +379,7 @@ public class DefaultChannelStream implements ChannelStream {
             @Override
             public void triggerStoreBinlogPos() {
 
-                DefaultChannelStream.this.binlogPositionStore.store(ds.getPos(), channelId);
+                DefaultChannelStream.this.binlogPositionStore.store(ds.getPos(), ds.getBinlogDataSet().getChannelId());
             }
 
         };
@@ -429,7 +411,7 @@ public class DefaultChannelStream implements ChannelStream {
     private PersistPosBufferableBinlogDataSet createPersistPosBufferableBinlogDataSet(
             final BinlogPosition currentTransPos) {
         BinlogDataSet ds = BinlogDataSet.createPositionStoreTrigger(this.channelId, streamSource.getHostUrl(),
-                transactionRecognizer.getGTId());
+                transactionRecognizer.getGTId(),transactionRecognizer.getTransBinlogPos());
         return new PersistPosBufferableBinlogDataSet(ds, currentTransPos);
     }
 
@@ -441,7 +423,8 @@ public class DefaultChannelStream implements ChannelStream {
      */
     private BufferableBinlogDataSet convert(ValidBinlogOutput validOutput) {
         BinlogDataSet ds =
-                new BinlogDataSet(this.channelId, streamSource.getHostUrl(), transactionRecognizer.getGTId());
+                new BinlogDataSet(this.channelId, streamSource.getHostUrl(), transactionRecognizer.getGTId(),
+                        transactionRecognizer.getTransBinlogPos());
 
         BaseRowEvent event = validOutput.getRowEvent();
         String tableName = event.getFullTableName();

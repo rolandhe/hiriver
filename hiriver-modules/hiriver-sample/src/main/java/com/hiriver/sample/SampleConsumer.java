@@ -19,7 +19,8 @@ public class SampleConsumer extends AbstractConsumer implements Consumer {
 
     @Override
     protected void consumeRowData(final BinlogDataSet rowData) {
-        LOG.info("out put data {}", rowData.getRowDataMap().size());
+        LOG.info("out put data {},gtid is {}, binlog pos is {}", rowData.getRowDataMap().size(), rowData.getGtId(),
+                rowData.getBinlogPos());
         for (String tb : rowData.getRowDataMap().keySet()) {
             LOG.info("=======start table:" + tb + "=======");
             List<BinlogResultRow> rowList = rowData.getRowDataMap().get(tb);
