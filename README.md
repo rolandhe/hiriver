@@ -37,4 +37,4 @@ hiriver支持mysql 5.6.9+和 mysql5.1+版本。
 待续 
 
 # 总体架构
-待续
+![](https://github.com/rolandhe/doc/blob/master/hiriver/hiriver-arch.png)
