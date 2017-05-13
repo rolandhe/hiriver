@@ -26,10 +26,10 @@ hiriver支持mysql 5.6.9+和 mysql5.1+版本。
 2. 开启row base和gtid 模式（如果使用gtid作为同步点，必须开启）
 	<pre><code>
 	log-bin=mysql-bin
-	binlog\_format=Row
+	binlog_format=Row
 	log-slave-updates=ON
-	enforce\_gtid\_consistency=true
-	gtid\_mode=ON
+	enforce_gtid_consistency=true
+	gtid_mode=ON
 	</pre></code>
 3. 创建自己的复制账号，创建repl database和一张表，并在表示写入数据
 
