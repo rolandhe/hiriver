@@ -5,7 +5,8 @@ import com.hiriver.channel.stream.BinlogPositionStoreTrigger;
 import com.hiriver.channel.stream.Consumer;
 
 /**
- * {@link com.hiriver.channel.stream.impl.Consumer}抽象实现，强烈建议业务方继承本类实现自己的业务处理。
+ * {@link com.hiriver.channel.stream.impl.Consumer}抽象实现，仅仅适用于简单测试时继承本类实现，在实际的业务中强烈建议业务方直接实现
+ * {@link Consumer}接口。
  * 
  * @author hexiufeng
  *

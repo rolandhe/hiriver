@@ -44,7 +44,32 @@ hiriver支持mysql 5.6.9+和 mysql5.1+版本。
 2. 修改示例中hiriver-sample.properties的参数,修改数据库相关属性、初始同步点、同步点存储路径和表名过滤黑、白名单配置，其中channel_0000.gtid参数的配置需要从mysql中查询数获取，执行 <pre><code>show master status</pre></code>命令，得到如下结果：![](https://github.com/rolandhe/doc/blob/master/hiriver/hiriver-mysql-gtid.png),这是一个范围，你只需要使用<pre><code>8c80613e-ac5b-11e5-b170-148044d6636f:1 or 8c80613e-ac5b-11e5-b170-148044d6636f:8</pre></code>即可.修改后如图：![](https://github.com/rolandhe/doc/blob/master/hiriver/hiriver-sample-gtid.png)
 3. 修改spring-boot.xml中的最后一行为: <code> &lt;import resource="classpath:spring/spring-gtid.xml"/&gt; </code>
 4. 使用tomcat/jetty或maven jetty插件运行示例即可
- 
+
+## 详细参数说明
+### 底层socket控制参数（使用TransportConfig类描述）
+| 参数名称 | 说明 |
+| :------| :------ |
+| connectTimeout |  socket连接超时，同Socket.connect(SocketAddress endpoint,int timeout)，单位ms，缺省15000 |
+| soTimeout | socket读写超时时间，同Socket.setSoTimeout(int timeout), 单位ms，缺省15000 | 
+| receiveBufferSize | socket 接收缓冲区大小，同Socket. setReceiveBufferSize(int size),缺省0，0表示使用系统默认缓冲区大小 | 
+| sendBufferSize | socket 接收缓冲区大小，同Socket.setSendBufferSize(int size),缺省0，0表示使用系统默认缓冲区大小 | 
+| keepAlive | 是否保持长连接，同Socket.setKeepAlive(boolean on) | 
+| initSqlList | 在建立数据库连接后，需要初始化执行sql语句的列表，缺省是仅仅包含"SET AUTOCOMMIT=1" sql语句的列表，该sql在dump mysql binlog时不生效。 TransportConfig 类被dump binlog和执行mysql数据库读取类共用，具体参见 ***重点类说明章节***|
+
+### binlog读取参数（DefaultChannelStream类）
+| 参数名称 | 说明 |
+| :------| :------ |
+| faultTolerantTimeout |  当与mysql失去连接后，线程sleep的时间，超过该时间后再进行重连，单位ms，缺省5000 |
+| fetalWaitTimeout | 当读取binlog数据或者解析数据过程中发生未知异常时到下次重试的间隔时间，默认2min，单位ms |
+| channelId | dump单个数据库可以理解为是一个数据流，channelId是流的名称，一个hiriver进程中可以支持多个流dump多个数据库，其channelId不能重复，默认是uuid。<br>当一个场景中需要一个进程dump多个数据库时，比如在分库应用中，建议使用channel.0000.id格式命名，其中0000是分库场景中数据库的编号。|
+|channelBuffer|用于缓存从数据库dump出数据，DefaultChannelStream 由两个线程组成，一个是provider线程，负责从mysql dump数据，另一个是Consumer线程，负责消费、使用数据，使用channelBuffer 进行数据传递，既可以解耦，又可以提高性能，channelBuffer 不能设置的无限大，需要使用DefaultChannelBuffer.limit属性控制大小|
+|channel.buffer.limit| channelBuffer 的大小，对应DefaultChannelBuffer.limit属性，默认5000|
+|configBinlogPos|初始同步点，使用BinlogPosition接口描述。支持binlog file name+pos和gtid方式，分别对应于BinlogFileBinlogPosition和GTidBinlogPosition|
+|binlogPositionStore|同步点存储，使用BinlogPositionStore接口描述，默认FileBinlogPositionStore实现，可以自由扩展|
+|position.store.path|同步点的存储路径，适用与FileBinlogPositionStore 实现，对应FileBinlogPositionStore.filePath属性|
+|transactionRecognizer|事务开始、结束识别器，使用TransactionRecognizer描述，针对binlog file name+pos和gtid模式提供BinlogNameAndPosTransactionRecognizer和GTIDTransactionRecognizer实现|
+|streamSource|需要dump数据的数据源描述，使用StreamSource接口描述，MysqlStreamSource是针对mysql数据的实现，HAStreamSource是在MysqlStreamSource 之上的封装，它持有多个MysqlStreamSource 对象，当一个发生故障时，它可以自动切换到其他MysqlStreamSource 上，在gtid模式下推荐使用HAStreamSource，这时一般适用于从从库dump数据。|
+
 
 # 架构设计
 ## 总体架构
@@ -53,4 +78,8 @@ hiriver支持mysql 5.6.9+和 mysql5.1+版本。
 ![](https://github.com/rolandhe/doc/blob/master/hiriver/hiriver-frame.png)
 ## hiriver组件设计
 ![](https://github.com/rolandhe/doc/blob/master/hiriver/hiriver-compent.png)
+
+# 重点类说明
+## binlog dump 通信类
+## 数据库数据读取类
 
