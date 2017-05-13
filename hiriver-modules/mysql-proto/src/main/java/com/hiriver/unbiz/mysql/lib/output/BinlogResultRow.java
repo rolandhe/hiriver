@@ -18,6 +18,9 @@ public class BinlogResultRow {
      */
     private final List<BinlogColumnValue> afterColumnValueList;
     private final RowModifyTypeEnum rowModifyType;
+    /**
+     * 当前数据写入数据库时的时间戳，unix 时间戳
+     */
     private final long binlogOccurTime;
 
     public BinlogResultRow(List<BinlogColumnValue> beforeColumnValueList, List<BinlogColumnValue> afterColumnValueList,

@@ -69,17 +69,65 @@ hiriver支持mysql 5.6.9+和 mysql5.1+版本。
 |position.store.path|同步点的存储路径，适用与FileBinlogPositionStore 实现，对应FileBinlogPositionStore.filePath属性|
 |transactionRecognizer|事务开始、结束识别器，使用TransactionRecognizer描述，针对binlog file name+pos和gtid模式提供BinlogNameAndPosTransactionRecognizer和GTIDTransactionRecognizer实现|
 |streamSource|需要dump数据的数据源描述，使用StreamSource接口描述，MysqlStreamSource是针对mysql数据的实现，HAStreamSource是在MysqlStreamSource 之上的封装，它持有多个MysqlStreamSource 对象，当一个发生故障时，它可以自动切换到其他MysqlStreamSource 上，在gtid模式下推荐使用HAStreamSource，这时一般适用于从从库dump数据。|
+|slaveHostUrl|从数据库ip:port，对应MysqlStreamSource.hostUrl属性，适用于使用HAStreamSource时|
+|table.white|根据表名过滤时的白名单配置，支持正则，参见BlackWhiteNameListTableFilter|
+|table.black|根据表名过滤时的黑名单配置，支持正则，参见BlackWhiteNameListTableFilter|
 
+### 数据库配置
+| 参数名称 | 说明 |
+| :------| :------ |
+|user_name|用户名称，对应MysqlStreamSource.userName属性|
+|password|密码，对应MysqlStreamSource.password属性|
+|hostUrl|数据库ip:port，对应MysqlStreamSource.hostUrl属性|
 
 # 架构设计
 ## 总体架构
 ![](https://github.com/rolandhe/doc/blob/master/hiriver/hiriver-arch.png)
-## hiriver框架设计
+## hiriver套件设计
 ![](https://github.com/rolandhe/doc/blob/master/hiriver/hiriver-frame.png)
 ## hiriver组件设计
 ![](https://github.com/rolandhe/doc/blob/master/hiriver/hiriver-compent.png)
+### 组件说明
+***mysql-proto***组件封装了完整的mysql binlog协议和部分的文本协议（jdbc背后的协议），binlog协议用于dump、解析mysql的binlog日志，文本协议用于执行sql语句、读取表的元数据等。<br>
+***hiriver*** 组件基于mysql-proto实现了dump数据、过滤表、解析数据以及消费数据的流程。
 
 # 重点类说明
-## binlog dump 通信类
-## 数据库数据读取类
+## 底层通信类
+### binlog dump类(BinlogStreamBlockingTransportImpl)
+实现mysql binlog dump协议，负责与mysql建立socket连接，完成用户名密码验证后，执行数据dump命令，并持续的读取、解析mysql binlog event数据。
+### 数据库数据读取类（TextProtocolBlockingTransportImpl）
+mysql文本协议的实现，mysql文本协议即jdbc背后的协议，主要用于执行sql读取数据，也可以执行一些其他的命令，比如读取表定义的元数据等，之所以不使用mysql jdbc是由于两个原因：一是不想引入一个第三方包，降低依赖性；二是mysql的文本协议支持更多指令，比如COM_FIELD_LIST指令方便的获取到表字段是否为空、是否是索引字段等信息，而jdbc是个通用的api，并没有暴露这些指令实现。
+## 表名过滤类 （BlackWhiteNameListTableFilter）
+支持黑白名单的过滤实现。 
+按照表名进行过滤时，表名格式为database.table（可以为正则），以逗号分隔.<br>
+当白名单和黑名单同时存在时,只有不在黑名单中同时在白名单中存在的才起作用.<br>
+e.g,在properties文件中描述<br>
+白名单：filert_white=test.account,test.user_sharding* <br>
+白名单：filert_black=test.*bak
+## binlog row event数据描述类（BinlogDataSet）
+binlog数据是二进制数据，它遵循mysql rowbase binlog协议，在协议内部event作为一个基本单位用于描述数据库的变更，这里的“变更”不仅仅是数据的修改，也可能是事务的开启、结束，表的变更等，在hiriver里我们仅仅关注表数据的变更，BinlogDataSet用于描述一条或多条数据的变化，类似于jdbc的RowSet。BinlogDataSet 包括：<br>
+1. channelId <br>
+2. sourceHostUrl,该数据来自哪个数据库 <br>
+3. gtId， 该数据所在的事务的gtid，在不支持gtid模式下，为null <br>
+4. binlogPos, 当前数据所在事务的binlogfile + pos,无论哪种模式，一定补位null <br>
+5. isStartTransEvent， 当前是否一个事务的开启 <br>
+6. isPositionStoreTrigger,当前是否一个事务的结束，当时true时需要记录同步点。<br>
+7. rowDataMap, 行数据,每一行使用BinlogResultRow描述 <br>
+8. columnDefMap, 类定义描述<br>
+
+BinlogResultRow内部是有二个列表，一个记录变更之前的数据，另一个记录变更之后的数据。
+
+## 数据消费类 （Consumer）
+描述消费BinlogDataSet数据的接口，这个留给业务实现方来实现。
+
+## binlog流(DefaultChannelStream)
+mysql binlog dump被抽象成一个流，每一个流仅仅针对一个mysql实例，这个流称之为ChannelStream, ChannelStream负责源源不断的从mysql实例读取数据并过滤、解析和消费。<br>DefaultChannelStream是ChannelStream的缺省实现，在内部它开启了2条线程：provider和consumer线程，provider线程负责从数据库读取数据，识别事务、根据表名过滤、解析成BinlogDataSet并放入ChannelBuffer；consumer线程负责从ChannelBuffer读取数据并调用Consumer进行数据消费。<br> 当provider线程产生数据的速度大于consumer线程消费数据的速度时，数据会被积压在ChannelBuffer中，为了防止内存被打爆，ChannelBuffer需要实现成有界的，当ChannelBuffer达到上限时会阻塞provider线程产生新数据。
+
+
+## 数据缓存类 （DefaultChannelBuffer）
+ChannelStream中provider和consumer线程的数据通信基础，它是ChannelBuffer的缺省实现。谨记，需要配置上限。
+
+## 事务识别类（TransactionRecognizer）
+用于识别事务的开启、结束，并且记录当前事务的开始位置。针对gtid和binlog file name + pos两种模式，提供2种实现：GTIDTransactionRecognizer和BinlogNameAndPosTransactionRecognizer。
+
 
