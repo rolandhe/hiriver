@@ -26,19 +26,24 @@ hiriver支持mysql 5.6.9+和 mysql5.1+版本。
 2. 开启row base和gtid 模式（如果使用gtid作为同步点，必须开启）
 	<pre><code>
 	log-bin=mysql-bin
-	binlog_format=Row
+	binlog\_format=Row
 	log-slave-updates=ON
-	enforce_gtid_consistency=true
-	gtid_mode=ON
+	enforce\_gtid\_consistency=true
+	gtid\_mode=ON
 	</pre></code>
 3. 创建自己的复制账号，创建repl database和一张表，并在表示写入数据
 
 ### 快速使用-binlogname + 偏移地址模式
-待续
-### 快速使用-gtid模式
-1. 下载代码，找到hiriver-sample模块，它是一个web应用
-2. 修改示例中hiriver-sample.properties的参数,修改数据库相关属性、初始同步点、同步点存储路径和表名过滤黑、白名单配置，其中channel_0000.gtid参数的配置需要从mysql中查询数获取，执行 <pre><code>show master status</pre></code>命令，得到如下结果：<pre><code>8c80613e-ac5b-11e5-b170-148044d6636f:1-13</pre></code>这是一个范围，你只需要使用<pre><code>8c80613e-ac5b-11e5-b170-148044d6636f:1 or 8c80613e-ac5b-11e5-b170-148044d6636f:8</pre></code>即可.如图：![](https://github.com/rolandhe/doc/blob/master/hiriver/hiriver-sample-gtid.png)
+1. 下载代码，找到hiriver-sample模块，它是一个基于spring的web应用,有3 spring xml配置文件，分别是：<pre><code>spring-boot.xml # spring容器描述入口文件</pre></code><pre><code>spring-bin.xml # binlogname + 偏移地址模式</pre></code><pre><code>spring-gtid.xml # gtid模式</pre></code>
+2. 修改示例中hiriver-sample.properties的参数,修改数据库相关属性、初始同步点、同步点存储路径和表名过滤黑、白名单配置
+3. 初始化同步点使用channel.0000.binlog和channel.0000.binlog.pos属性，可以通过执行 <pre><code>show master status</pre></code>命令获取对应信息![](https://github.com/rolandhe/doc/blob/master/hiriver/hiriver-sample-gtid.png)，如图：![](https://github.com/rolandhe/doc/blob/master/hiriver/hiriver-sample-bin.png)
+4. 修改spring-boot.xml中的最后一行为:<pre><code> &lt;import resource="classpath:spring/spring-binlog.xml"/&gt;</pre></code>
 3. 使用tomcat/jetty或maven jetty插件运行示例即可
+### 快速使用-gtid模式
+1. 下载代码，找到hiriver-sample模块，它是一个基于spring的web应用,有3 spring xml配置文件，分别是：<pre><code>spring-boot.xml # spring容器描述入口文件</pre></code><pre><code>spring-bin.xml # binlogname + 偏移地址模式</pre></code><pre><code>spring-gtid.xml # gtid模式</pre></code>
+2. 修改示例中hiriver-sample.properties的参数,修改数据库相关属性、初始同步点、同步点存储路径和表名过滤黑、白名单配置，其中channel_0000.gtid参数的配置需要从mysql中查询数获取，执行 <pre><code>show master status</pre></code>命令，得到如下结果：<pre><code>8c80613e-ac5b-11e5-b170-148044d6636f:1-13</pre></code>这是一个范围，你只需要使用<pre><code>8c80613e-ac5b-11e5-b170-148044d6636f:1 or 8c80613e-ac5b-11e5-b170-148044d6636f:8</pre></code>即可.如图：![](https://github.com/rolandhe/doc/blob/master/hiriver/hiriver-sample-gtid.png)
+3. 修改spring-boot.xml中的最后一行为: <code> &lt;import resource="classpath:spring/spring-gtid.xml"/&gt; </code>
+4. 使用tomcat/jetty或maven jetty插件运行示例即可
  
 
 # 架构设计
