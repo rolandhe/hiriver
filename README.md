@@ -11,7 +11,9 @@ hiriver支持mysql 5.6.9+和 mysql5.1+版本。
 + ***强烈推荐*** 使用5.6.9+版本，并使用binlog file name + position的方式处理同步点。
 + 虽然5.6.9+版本提供 ***gtid*** 功能，它是用于表示事务的唯一的id，理论上，基于它可以实现HA功能，当mysql出现故障时可以自动从一台mysql从库切换到另一台，并且不会丢失或者重复数据，***但是*** 在实际的使用过程中gtid依然存在bug，并不稳定，而且存在多个gtid时很难找到mysql认识的初始同步点。
 +	mysql5.6.9之前的版本，必须binlog file name和在该文件中的偏移位置作为同步点。
-
+# javadoc
+![hiriver组件](https://github.com/rolandhe/doc/blob/master/javadoc/hiriver/hirver/index.html)<br>
+![mysql-proto组件](https://github.com/rolandhe/doc/blob/master/javadoc/hiriver/mysql-proto/index.html)
 # 使用教程
 ## quickstart
 ### 总体说明
