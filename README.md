@@ -131,4 +131,5 @@ ChannelStream中provider和consumer线程的数据通信基础，它是ChannelBu
 ## 事务识别类（TransactionRecognizer）
 用于识别事务的开启、结束，并且记录当前事务的开始位置。针对gtid和binlog file name + pos两种模式，提供2种实现：GTIDTransactionRecognizer和BinlogNameAndPosTransactionRecognizer。
 
-
+# License
+[Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
