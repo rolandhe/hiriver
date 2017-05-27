@@ -27,7 +27,7 @@ public class StringColumnTypeValueParser implements ColumnTypeValueParser {
         }
 
         return StringTool.safeConvertBytes2String(MysqlStringUtils.readFixString(buf, pos, len),
-                columnDef.getCharset().getCharsetName());
+                columnDef.getCharset());
 
     }
 

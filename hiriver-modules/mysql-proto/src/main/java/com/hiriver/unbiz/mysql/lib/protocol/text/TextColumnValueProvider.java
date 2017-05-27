@@ -1,6 +1,6 @@
 package com.hiriver.unbiz.mysql.lib.protocol.text;
 
-import com.hiriver.unbiz.mysql.lib.MyCharset;
+import com.hiriver.unbiz.mysql.lib.CharsetMapping;
 import com.hiriver.unbiz.mysql.lib.protocol.tool.StringTool;
 
 /**
@@ -11,7 +11,7 @@ import com.hiriver.unbiz.mysql.lib.protocol.tool.StringTool;
  */
 class TextColumnValueProvider implements ColumnValueProvider {
     private final byte[] binValue;
-    private MyCharset charset = MyCharset.UTF8;
+    private String charset = "UTF-8";
     private boolean isConvert = false;
     private String convertedString;
 
@@ -25,10 +25,10 @@ class TextColumnValueProvider implements ColumnValueProvider {
             if (binValue == null) {
                 convertedString = null;
             }
-            if (charset == MyCharset.BINARY) {
+            if (CharsetMapping.isBinary(charset)) {
                 convertedString = StringTool.safeConvertBytes2String(binValue);
             } else {
-                convertedString = StringTool.safeConvertBytes2String(binValue, charset.getCharsetName());
+                convertedString = StringTool.safeConvertBytes2String(binValue, charset);
             }
             isConvert = true;
         }
@@ -53,7 +53,7 @@ class TextColumnValueProvider implements ColumnValueProvider {
     }
 
     @Override
-    public void useCharset(MyCharset charset) {
+    public void useCharset(String charset) {
         this.charset = charset;
     }
 

@@ -23,7 +23,7 @@ public class DumpTestCase2 {
         tran.setUserName("root");
         tran.setPassword("");
         tran.setServerId(599);
-        tran.setCheckSum(false);
+//        tran.setCheckSum(false);
         
         tran.setTableFilter(new TableFilter(){
 

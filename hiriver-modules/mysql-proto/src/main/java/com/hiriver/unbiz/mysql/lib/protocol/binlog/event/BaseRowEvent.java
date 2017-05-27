@@ -227,7 +227,7 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
       LOG.error(
           "parse column value error, maybe you add new column in middle of all columns.{},{},binlog type:{},table type {},charset {}, first column value {}",
           getTableMapEvent().getTableName(), columnDef.getColumName(), columnType.getTypeValue(),
-          columnDef.getType().getTypeValue(), columnDef.getCharset().getCharsetName(), firstValue);
+          columnDef.getType().getTypeValue(), columnDef.getCharset(), firstValue);
       throw new FetalParseValueExp(e);
     }
 
@@ -257,12 +257,13 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
         LOG.info("change string type to {},length is {} of {}.{}", byte0 | 0x30,lengthHolder[0],getTableMapEvent()
                 .getFullTableName(),columnName);
         return ColumnType.ofTypeValue(byte0 | 0x30);
-      } else {
-        lengthHolder[0] = meta & 0xff;
       }
-    } else {
-      lengthHolder[0] = meta;
+
+      lengthHolder[0] = meta & 0xff;
+      return ColumnType.ofTypeValue(byte0);
+
     }
+    lengthHolder[0] = meta;
     return ColumnType.MYSQL_TYPE_STRING;
   }
 

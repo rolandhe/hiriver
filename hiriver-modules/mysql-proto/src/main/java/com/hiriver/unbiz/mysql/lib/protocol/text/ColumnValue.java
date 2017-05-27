@@ -1,6 +1,5 @@
 package com.hiriver.unbiz.mysql.lib.protocol.text;
 
-import com.hiriver.unbiz.mysql.lib.MyCharset;
 import com.hiriver.unbiz.mysql.lib.output.ColumnDefinition;
 
 /**
@@ -35,7 +34,7 @@ public class ColumnValue {
         return provider.getValueAsLong();
     }
 
-    public MyCharset getCharset() {
+    public String getCharset() {
         return definition.getCharset();
     }
     

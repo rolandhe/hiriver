@@ -1,7 +1,7 @@
 package com.hiriver.unbiz.mysql.lib.protocol.text;
 
+import com.hiriver.unbiz.mysql.lib.CharsetMapping;
 import com.hiriver.unbiz.mysql.lib.ColumnType;
-import com.hiriver.unbiz.mysql.lib.MyCharset;
 import com.hiriver.unbiz.mysql.lib.output.ColumnDefinition;
 import com.hiriver.unbiz.mysql.lib.protocol.AbstractResponse;
 import com.hiriver.unbiz.mysql.lib.protocol.ColumnFlagConst;
@@ -25,7 +25,7 @@ public class ColumnDefinitionResponse extends AbstractResponse implements Respon
     private String name;
     private String orgName;
     private int nextLength; // 0x0c
-    private MyCharset charset;
+    private String charset;
     private int columnLength;
     private ColumnType type;
     private int flags;
@@ -56,7 +56,7 @@ public class ColumnDefinitionResponse extends AbstractResponse implements Respon
         this.orgName = getLencString(buf, pos);
         nextLength = (int) MysqlNumberUtils.readLencodeLong(buf, pos);
 
-        charset = MyCharset.ofCharset(MysqlNumberUtils.read2Int(buf, pos));
+        charset = CharsetMapping.getJavaEncodingForCharsetValue(MysqlNumberUtils.read2Int(buf, pos));
         columnLength = MysqlNumberUtils.read4Int(buf, pos);
 
         type = ColumnType.ofTypeValue(MysqlNumberUtils.read1Int(buf, pos));
@@ -144,7 +144,7 @@ public class ColumnDefinitionResponse extends AbstractResponse implements Respon
         return nextLength;
     }
 
-    public MyCharset getCharset() {
+    public String getCharset() {
         return charset;
     }
 

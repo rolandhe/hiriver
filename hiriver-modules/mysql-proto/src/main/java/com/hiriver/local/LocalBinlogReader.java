@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hiriver.unbiz.mysql.lib.ColumnType;
-import com.hiriver.unbiz.mysql.lib.MyCharset;
 import com.hiriver.unbiz.mysql.lib.output.BinlogColumnValue;
 import com.hiriver.unbiz.mysql.lib.output.BinlogResultRow;
 import com.hiriver.unbiz.mysql.lib.output.ColumnDefinition;
@@ -64,14 +63,14 @@ public class LocalBinlogReader {
           ColumnDefinition cdf = new ColumnDefinition();
           cdf.setType(def.getColumnType());
           cdf.setColumName("@" + index);
-          cdf.setCharset(MyCharset.BINARY);
+          cdf.setCharset("binary");
           if (def.getColumnType() == ColumnType.MYSQL_TYPE_VARCHAR
               || def.getColumnType() == ColumnType.MYSQL_TYPE_STRING
               || def.getColumnType() == ColumnType.MYSQL_TYPE_VAR_STRING
               || def.getColumnType() == ColumnType.MYSQL_TYPE_BLOB
               || def.getColumnType() == ColumnType.MYSQL_TYPE_LONG_BLOB
               || def.getColumnType() == ColumnType.MYSQL_TYPE_MEDIUM_BLOB) {
-            cdf.setCharset(MyCharset.UTF8);
+            cdf.setCharset("UTF-8");
           }
           meta.addColumn(cdf);
           index++;

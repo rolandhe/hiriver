@@ -21,7 +21,7 @@ public class DumpTestCase {
         tran.setUserName("repl");
         tran.setPassword("pass123");
         tran.setServerId(55);
-        tran.setCheckSum(true);
+//        tran.setCheckSum(true);
         tran.setTableFilter(new TableFilter(){
 
             @Override

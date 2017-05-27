@@ -1,7 +1,6 @@
 package com.hiriver.unbiz.mysql.lib.output;
 
 import com.hiriver.unbiz.mysql.lib.ColumnType;
-import com.hiriver.unbiz.mysql.lib.MyCharset;
 
 /**
  * 表字段描述
@@ -21,7 +20,7 @@ public class ColumnDefinition {
     /**
      * 字段的字符集
      */
-    private MyCharset charset;
+    private String charset;
     /**
      * 是否是无符号
      */
@@ -65,11 +64,11 @@ public class ColumnDefinition {
         this.type = type;
     }
 
-    public MyCharset getCharset() {
+    public String getCharset() {
         return charset;
     }
 
-    public void setCharset(MyCharset charset) {
+    public void setCharset(String charset) {
         this.charset = charset;
     }
 

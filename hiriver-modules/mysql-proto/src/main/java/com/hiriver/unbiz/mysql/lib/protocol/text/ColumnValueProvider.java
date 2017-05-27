@@ -1,6 +1,5 @@
 package com.hiriver.unbiz.mysql.lib.protocol.text;
 
-import com.hiriver.unbiz.mysql.lib.MyCharset;
 
 /**
  * 解析列值的提供者抽象。用于解析每列的值
@@ -42,5 +41,5 @@ public interface ColumnValueProvider {
      * 
      * @param charset
      */
-    void useCharset(MyCharset charset);
+    void useCharset(String charset);
 }

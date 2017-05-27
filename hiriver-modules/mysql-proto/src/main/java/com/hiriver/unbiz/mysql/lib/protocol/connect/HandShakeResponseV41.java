@@ -3,7 +3,6 @@ package com.hiriver.unbiz.mysql.lib.protocol.connect;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import com.hiriver.unbiz.mysql.lib.MyCharset;
 import com.hiriver.unbiz.mysql.lib.protocol.AbstractRequest;
 import com.hiriver.unbiz.mysql.lib.protocol.CapabilityFlagConst;
 import com.hiriver.unbiz.mysql.lib.protocol.Request;
@@ -26,7 +25,7 @@ public class HandShakeResponseV41 extends AbstractRequest implements Request {
     private final HandShakeV10 handshake;
 
     private int maxSendPacketSize = DEF_PACK_SIZE; // 16M
-    private int charSet = MyCharset.UTF8.getCharset(); // utf8_general_ci
+    private int charSet = 33; // utf8_general_ci
     private byte[] reserved = new byte[23];
     private String userName;
     private String password;
