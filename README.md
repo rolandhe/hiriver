@@ -19,7 +19,7 @@ hiriver支持mysql 5.6.9+和 mysql5.1+版本。
 +  decimal，double，float类型
 +  tinyint，smallint，int，bigint类型
 +  Year类型
-+  String 类型
++  char,varchar 类型
 +  enum 类型，参见[https://dev.mysql.com/doc/refman/5.7/en/constraint-enum.html](https://dev.mysql.com/doc/refman/5.7/en/constraint-enum.html),输出字符串
 +  set 类型,参见[https://dev.mysql.com/doc/refman/5.7/en/set.html](https://dev.mysql.com/doc/refman/5.7/en/set.html)，输出字符串
 +  bit 类型, 参见[https://dev.mysql.com/doc/refman/5.7/en/bit-value-literals.html](https://dev.mysql.com/doc/refman/5.7/en/bit-value-literals.html)，输出"0b1101"格式字符串
