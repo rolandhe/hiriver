@@ -74,7 +74,8 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
 
   };
   /**
-   * 表元数据的提供者实现，从db中读取，基于 Text Protocol的COM_FIELD_LIST指令，比desc table name sql更有效， 返回更多数据
+   * 表元数据的提供者实现，从db中读取，基于 Text Protocol的COM_FIELD_LIST指令，比desc table name sql更有效， 返回更多数据，
+   * 使用show columns可读取enum or set的元数据
    */
   private TableMetaProvider tableMetaProvider = new TableMetaProvider() {
     private final Map<String, TableMeta> cache = new HashMap<String, TableMeta>();

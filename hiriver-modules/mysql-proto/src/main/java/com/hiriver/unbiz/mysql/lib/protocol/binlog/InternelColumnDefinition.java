@@ -18,12 +18,16 @@ public class InternelColumnDefinition {
     private int meta;
     private boolean isNull;
 
+    /**
+     * 该字段是否是枚举或者set
+     */
     private boolean enumOrSet;
 
     public InternelColumnDefinition(ColumnType columnType, int meta, boolean isNull) {
         this.columnType = columnType;
         this.meta = meta;
         this.isNull = isNull;
+        // 枚举或set在内部也用string表示，需要区分开来
         if(columnType == ColumnType.MYSQL_TYPE_STRING){
             int[] lenghHolder = {0};
             ColumnType realType = GenericStringTypeChecker.checkRealColumnType(meta,lenghHolder);
