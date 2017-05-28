@@ -5,7 +5,7 @@
     <groupId>com.hiriver</groupId>
     <artifactId>hiriver-modules</artifactId>
     <packaging>pom</packaging>
-    <version>1.2.1</version>
+    <version>1.2.2-SNAPSHOT</version>
     <name>hiriver-modules</name>
     <url>http://maven.apache.org</url>
 

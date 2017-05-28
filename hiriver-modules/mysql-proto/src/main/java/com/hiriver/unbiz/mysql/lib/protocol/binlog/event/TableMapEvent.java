@@ -31,6 +31,7 @@ public class TableMapEvent extends AbstractBinlogEvent implements BinlogEvent {
     private byte[] columnTypeDef;
     private byte[] columnMetaDef;
     private byte[] nullBitmap;
+    private boolean containsEnumOrSet;
 
     private List<InternelColumnDefinition> columnDefList;
 
@@ -64,6 +65,12 @@ public class TableMapEvent extends AbstractBinlogEvent implements BinlogEvent {
         this.nullBitmap = MysqlStringUtils.readFixString(buf, pos, (columnCount + 7) / 8);
 
         createColumnDefList();
+        for(InternelColumnDefinition columnDefinition:columnDefList){
+            if(columnDefinition.isEnumOrSet()){
+                this.containsEnumOrSet = true;
+                break;
+            }
+        }
     }
 
     private void createColumnDefList() {
@@ -137,5 +144,9 @@ public class TableMapEvent extends AbstractBinlogEvent implements BinlogEvent {
     
     public List<InternelColumnDefinition> getColumnDefList() {
         return columnDefList;
+    }
+
+    public boolean hasEnumOrSet(){
+        return containsEnumOrSet;
     }
 }

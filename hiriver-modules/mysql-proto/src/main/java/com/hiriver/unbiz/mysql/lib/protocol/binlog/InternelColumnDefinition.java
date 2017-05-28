@@ -1,6 +1,7 @@
 package com.hiriver.unbiz.mysql.lib.protocol.binlog;
 
 import com.hiriver.unbiz.mysql.lib.ColumnType;
+import com.hiriver.unbiz.mysql.lib.protocol.tool.GenericStringTypeChecker;
 
 /**
  * 内部使用的表的列定义
@@ -17,10 +18,19 @@ public class InternelColumnDefinition {
     private int meta;
     private boolean isNull;
 
+    private boolean enumOrSet;
+
     public InternelColumnDefinition(ColumnType columnType, int meta, boolean isNull) {
         this.columnType = columnType;
         this.meta = meta;
         this.isNull = isNull;
+        if(columnType == ColumnType.MYSQL_TYPE_STRING){
+            int[] lenghHolder = {0};
+            ColumnType realType = GenericStringTypeChecker.checkRealColumnType(meta,lenghHolder);
+            if(realType == ColumnType.MYSQL_TYPE_ENUM || realType == ColumnType.MYSQL_TYPE_SET){
+                enumOrSet = true;
+            }
+        }
     }
 
     public ColumnType getColumnType() {
@@ -33,5 +43,9 @@ public class InternelColumnDefinition {
 
     public boolean isNull() {
         return isNull;
+    }
+
+    public boolean isEnumOrSet(){
+        return enumOrSet;
     }
 }

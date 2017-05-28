@@ -25,6 +25,7 @@ import com.hiriver.unbiz.mysql.lib.protocol.binlog.exp.InvalidColumnType;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.exp.TableAlreadyModifyExp;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlNumberUtils;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlStringUtils;
+import com.hiriver.unbiz.mysql.lib.protocol.tool.GenericStringTypeChecker;
 
 /**
  * 基础的、抽象的mysql binlog row事件，用于解析出具体的数据
@@ -53,7 +54,7 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
 
 
   public List<ColumnDefinition> getColumnDefinitionList() {
-    return tableMetaProvider.getTableMeta(tableId, getTableMapEvent().getSchema(), getTableMapEvent().getTableName())
+    return tableMetaProvider.getTableMeta(tableId, getTableMapEvent())
         .getColumnMetaList();
   }
 
@@ -135,7 +136,7 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
       parseVerBodyForUpdate(buf, pos);
     }
     TableMeta tableMeta =
-        tableMetaProvider.getTableMeta(tableId, getTableMapEvent().getSchema(), getTableMapEvent().getTableName());
+        tableMetaProvider.getTableMeta(tableId, getTableMapEvent());
     List<BinlogColumnValue> nullList = Collections.emptyList();
     int maxLen = buf.length;
     if (super.isHasCheckSum()) {
@@ -206,7 +207,7 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
     int[] lengthHolder = {0};
     ColumnType realType;
     try {
-      realType = prepareForTypeString(meta, lengthHolder,columnDef.getColumName());
+      realType = GenericStringTypeChecker.checkRealColumnType(meta, lengthHolder);
       doParseColumn(buf, pos, columnValueList, columnDef, lengthHolder[0], realType);
     } catch (InvalidColumnType e) {
       LOG.info("{},{}", getTableMapEvent().getFullTableName(), columnDef.getColumName());
@@ -233,39 +234,6 @@ public abstract class BaseRowEvent extends AbstractBinlogEvent implements Binlog
 
   }
 
-  /**
-   *
-   * 针对于char类型所做的特殊处理，主要是重新修正length，参见log_event.cc#log_event_print_value
-   *
-   *
-   * @param meta
-   * @param lengthHolder
-   * @param columnName
-   * @return
-   */
-  private ColumnType prepareForTypeString(int meta, int[] lengthHolder, final String columnName) {
-    // from log_event.cc
-    if (meta >= 256) {
-      // column type
-      int byte0 = meta >>> 8;
-      // length
-      int byte1 = meta & 0xff;
-
-      if ((byte0 & 0x30) != 0x30) {
-        /* a long CHAR() field: see #37426 */
-        lengthHolder[0] = byte1 | (((byte0 & 0x30) ^ 0x30) << 4);
-        LOG.info("change string type to {},length is {} of {}.{}", byte0 | 0x30,lengthHolder[0],getTableMapEvent()
-                .getFullTableName(),columnName);
-        return ColumnType.ofTypeValue(byte0 | 0x30);
-      }
-
-      lengthHolder[0] = meta & 0xff;
-      return ColumnType.ofTypeValue(byte0);
-
-    }
-    lengthHolder[0] = meta;
-    return ColumnType.MYSQL_TYPE_STRING;
-  }
 
   private boolean isNullInRow(int nullBitmapIndex, byte[] rowNullBitmap) {
     int value = rowNullBitmap[nullBitmapIndex / 8];

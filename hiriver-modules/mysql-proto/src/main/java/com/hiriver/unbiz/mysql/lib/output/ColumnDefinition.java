@@ -2,6 +2,9 @@ package com.hiriver.unbiz.mysql.lib.output;
 
 import com.hiriver.unbiz.mysql.lib.ColumnType;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * 表字段描述
  * 
@@ -39,6 +42,9 @@ public class ColumnDefinition {
     private boolean isKey;
     
     private int len;
+
+    private final List<String> enumList = new ArrayList<>();
+    private final List<String> setList = new ArrayList<>();
 
     public int getLen() {
         return len;
@@ -102,6 +108,14 @@ public class ColumnDefinition {
 
     public void setKey(boolean isKey) {
         this.isKey = isKey;
+    }
+
+    public List<String> getEnumList(){
+        return this.enumList;
+    }
+
+    public List<String> getSetList(){
+        return  this.setList;
     }
 
 }

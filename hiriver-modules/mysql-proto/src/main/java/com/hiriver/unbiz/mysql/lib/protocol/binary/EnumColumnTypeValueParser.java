@@ -25,7 +25,7 @@ public class EnumColumnTypeValueParser implements ColumnTypeValueParser {
                 break;
             default:
         }
-        return value;
+        return columnDef.getEnumList().get(value - 1);
     }
 
 }

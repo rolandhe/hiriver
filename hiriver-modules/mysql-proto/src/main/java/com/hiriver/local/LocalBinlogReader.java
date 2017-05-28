@@ -55,11 +55,10 @@ public class LocalBinlogReader {
     context.setTableMetaProvider(new TableMetaProvider() {
 
       @Override
-      public TableMeta getTableMeta(long tableId, String schemaName, String tableName) {
+      public TableMeta getTableMeta(long tableId,TableMapEvent tableMapEvent) {
         TableMeta meta = new TableMeta(tableId);
-        TableMapEvent tme = context.getTableMapEventByTableId(tableId);
         int index = 0;
-        for (InternelColumnDefinition def : tme.getColumnDefList()) {
+        for (InternelColumnDefinition def : tableMapEvent.getColumnDefList()) {
           ColumnDefinition cdf = new ColumnDefinition();
           cdf.setType(def.getColumnType());
           cdf.setColumName("@" + index);
