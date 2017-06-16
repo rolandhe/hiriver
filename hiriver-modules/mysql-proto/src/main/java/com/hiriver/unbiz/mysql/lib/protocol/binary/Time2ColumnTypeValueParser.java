@@ -1,5 +1,6 @@
 package com.hiriver.unbiz.mysql.lib.protocol.binary;
 
+import java.sql.Time;
 import java.util.Calendar;
 
 import com.hiriver.unbiz.mysql.lib.output.ColumnDefinition;
@@ -26,9 +27,9 @@ public class Time2ColumnTypeValueParser implements ColumnTypeValueParser {
             tmp = -tmp;
         }
         hms = tmp >>> 24;
-        int year = 0;
+        int year = 1970;
         int month = 0;
-        int day = 0;
+        int day = 1;
         int hour = (int) (hms >>> 12) % (1 << 10); /* 10 bits starting at 12th */
         int minute = (int) (hms >>> 6) % (1 << 6); /* 6 bits starting at 6th */
         int second = (int) hms % (1 << 6); /* 6 bits starting at 0th */
@@ -36,7 +37,9 @@ public class Time2ColumnTypeValueParser implements ColumnTypeValueParser {
         Calendar cal = Calendar.getInstance();
 
         cal.set(year, month, day, hour, minute, second);
-        return cal.getTime();
+
+        Time time = new Time(cal.getTimeInMillis());
+        return time;
     }
 
     private long myTimePackedFromBinary(byte[] buf, Position pos, int dec) {
