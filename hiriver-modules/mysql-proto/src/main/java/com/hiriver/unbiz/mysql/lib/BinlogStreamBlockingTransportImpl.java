@@ -431,6 +431,7 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
     eventHeader.parse(buf, pos);
     BinlogEvent event = EventFactory.factory(eventHeader.getEventType(), eventHeader.getLogPos(), context, checkSum);
     tryParseTableIdOfRowEvent(event, buf, pos);
+    setupFilterForTableMapEvent(event);
     if (!filter(event)) {
       return null;
     }
@@ -438,6 +439,18 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
     event.parse(buf, pos);
 
     return event;
+  }
+
+  /**
+   * {@link TableMapEvent} 需要设置 tableFilter属性, 在数据解析时如果表过滤不能通过，可以快速退出
+   *
+   * @param event
+   */
+  private void setupFilterForTableMapEvent(BinlogEvent event) {
+    if(event instanceof TableMapEvent){
+      TableMapEvent tableMapEvent = (TableMapEvent)event;
+      tableMapEvent.setTableFilter(tableFilter);
+    }
   }
 
   /**
@@ -486,13 +499,10 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
 
       LOGGER.debug("filter row event,{}.{}, {} ", rowEvent.getTableMapEvent().getSchema(),
           rowEvent.getTableMapEvent().getTableName(), ret);
-      if (ret) {
-        return true;
-      }
       return ret;
-    } else {
-      return true;
     }
+
+    return true;
   }
 
   public TableMetaProvider getTableMetaProvider() {

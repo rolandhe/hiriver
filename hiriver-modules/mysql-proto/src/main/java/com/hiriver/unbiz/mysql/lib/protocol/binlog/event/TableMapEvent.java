@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.hiriver.unbiz.mysql.lib.ColumnType;
+import com.hiriver.unbiz.mysql.lib.filter.TableFilter;
 import com.hiriver.unbiz.mysql.lib.protocol.Position;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.BinlogEvent;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.BinlogEventType;
@@ -12,6 +13,9 @@ import com.hiriver.unbiz.mysql.lib.protocol.binlog.exp.InvalidColumnType;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlNumberUtils;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlStringUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * tablemapevent，描述表的元数据
  * 
@@ -19,6 +23,8 @@ import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlStringUtils;
  *
  */
 public class TableMapEvent extends AbstractBinlogEvent implements BinlogEvent {
+    private static  final Logger LOGGER = LoggerFactory.getLogger(TableMapEvent.class);
+
     private final FormatDescriptionEvent formatDescriptionEvent;
 
     private long tableId;
@@ -34,6 +40,8 @@ public class TableMapEvent extends AbstractBinlogEvent implements BinlogEvent {
     private boolean containsEnumOrSet;
 
     private List<InternelColumnDefinition> columnDefList;
+
+    private TableFilter tableFilter;
 
     public TableMapEvent(FormatDescriptionEvent formatDescriptionEvent, final long eventBinlogPos,
             boolean hasCheckSum) {
@@ -63,6 +71,12 @@ public class TableMapEvent extends AbstractBinlogEvent implements BinlogEvent {
         int metaLen = (int) MysqlNumberUtils.readLencodeLong(buf, pos);
         this.columnMetaDef = MysqlStringUtils.readFixString(buf, pos, metaLen);
         this.nullBitmap = MysqlStringUtils.readFixString(buf, pos, (columnCount + 7) / 8);
+
+        // 如果设置了过滤条件，并且过滤不通过，不再继续解析，快速退出
+        if(tableFilter != null && !tableFilter.filter(schema,tableName)) {
+            LOGGER.info("{}.{} is filtered, quick exit.", schema , tableName);
+            return;
+        }
 
         createColumnDefList();
         for(InternelColumnDefinition columnDefinition:columnDefList){
@@ -148,5 +162,9 @@ public class TableMapEvent extends AbstractBinlogEvent implements BinlogEvent {
 
     public boolean hasEnumOrSet(){
         return containsEnumOrSet;
+    }
+
+    public void setTableFilter(TableFilter tableFilter) {
+        this.tableFilter = tableFilter;
     }
 }
