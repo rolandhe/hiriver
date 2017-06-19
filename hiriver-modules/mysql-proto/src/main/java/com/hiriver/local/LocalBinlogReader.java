@@ -81,14 +81,15 @@ public class LocalBinlogReader {
     });
   }
 
-  public void traversal() {
+
+  public void traversal(final LocalEventProcessor eventProcessor) {
     FileInputStream fs = null;
 
     try {
       fs = new FileInputStream(filePath);
       readHeader(fs);
       readMeta(fs);
-      readValidEvent(fs);
+      readValidEvent(fs,eventProcessor);
     } catch (FileNotFoundException e) {
       LOG.error("open file error.", e);
     } catch (IOException e) {
@@ -110,124 +111,24 @@ public class LocalBinlogReader {
     }
   }
 
-  private void readValidEvent(final FileInputStream fs) throws IOException {
-    String gtid = "";
-    int wordCount = 0;
-    int allCount = 0;
+  private void readValidEvent(final FileInputStream fs,final LocalEventProcessor eventProcessor) throws IOException {
+
     while (true) {
       BinlogEvent event = readEvent(fs);
-      // if (event.getBinlogEventPos() == 509054727L) {
-      // System.out.println("hehe");
-      // }
-
       if (event instanceof TableMapEvent) {
         context.putCurrentTableMapEvent((TableMapEvent) event);
-        // if( context.getTableMapEvent().getTableName().startsWith("huichuan_ad.")){
-        // System.out.println("gogo");
-        // }
-        // LOG.info("table name from table map event {}",
-        // context.getTableMapEvent().getTableName());
+        eventProcessor.processTableMapEvent((TableMapEvent) event);
         continue;
-      }
-      if (event instanceof BaseRowEvent) {
-        // if(!context.getTableMapEvent().getTableName().startsWith("huichuan_ad.")){
-        // LOG.info("filter table event {}",context.getTableMapEvent().getTableName());
-        // }
       }
 
       ValidBinlogOutput out = distinguishEvent(event);
       if (out == null) {
         continue;
       }
-      if (out.getEventType() == ValidEventType.GTID) {
-        GTidEvent gevent = (GTidEvent) out.getEvent();
-        gtid = gevent.getGTidString();
-        continue;
-      }
-      if (out.getEventType() == ValidEventType.ROW) {
-        BaseRowEvent rowEvent = (BaseRowEvent) out.getEvent();
-        String tableName = rowEvent.getTableMapEvent().getFullTableName();
-        // if(tableName.indexOf("sentinel") > 0){
-        // System.out.println(rowEvent.getRowList().get(0).getAfterColumnValueList());
-        // }
-        if (tableName.equalsIgnoreCase("accounting.user_accounting")) {
-          List<BinlogResultRow> rowList = rowEvent.getRowList();
-          for (BinlogResultRow row : rowList) {
-            if (row.getRowModifyType() != RowModifyTypeEnum.UPDATE) {
-              continue;
-            }
-            if (row.getBeforeColumnValueList().get(0).getValue().equals(16277306L)) {
-              System.out.println("time:" + row.getBinlogOccurTime());
-              int index = 0;
-              for (BinlogColumnValue colValue : row.getBeforeColumnValueList()) {
-
-                BinlogColumnValue after = row.getAfterColumnValueList().get(index++);
-                System.out.println(colValue.getDefinition().getColumName());
-                System.out.println(colValue.getValue());
-                System.out.println(after.getValue());
-                System.out.println("===========================================");
-
-                // if(colValue.getDefinition().getColumName().equals("@7")){
-                // String json = (String)colValue.getValue();
-                // FileOutputStream os = new
-                // FileOutputStream("/Users/hexiufeng/data/err/iead.json");
-                // os.write(json.getBytes("UTF-8"));
-                // os.close();
-                // }
-              }
-            }
-          }
-          wordCount++;
-        }
-        allCount++;
-        continue;
-      }
-      if (out.getEventType() == ValidEventType.TRANS_COMMIT) {
-
-        // if (count > 0) {
-        // System.out.println(
-        // gtid + " " + wordCount + " " + allCount + " commit" + " " +
-        // out.getEvent().getOccurTime());
-        // }
-        gtid = "";
-        allCount = 0;
-        wordCount = 0;
-        continue;
-      }
-      if (out.getEventType() == ValidEventType.TRANS_ROLLBACK) {
-        // System.out.println(gtid + "$rollback ");
-        gtid = "";
-        allCount = 0;
-        wordCount = 0;
-        continue;
-      }
-      // output(out);
+      eventProcessor.processValidBinlogOutput(out);
     }
   }
 
-  private static long count = 0;
-
-  private void output(ValidBinlogOutput out) {
-    if (out == null) {
-      return;
-    }
-
-    if (out.getEventType() == ValidEventType.GTID) {
-      GTidEvent gevent = (GTidEvent) out.getEvent();
-      count++;
-      LOG.info("gtid is {}", gevent.getGTidString());
-      if ("f5d8d81a-aed5-11e5-819a-70e28411a2a1:659585576".equals(gevent.getGTidString())) {
-        System.out.println("hehe");
-      }
-    } else if (out.getEventType() == ValidEventType.ROW) {
-      BaseRowEvent rowEvent = (BaseRowEvent) out.getEvent();
-      // LOG.info("row data table name is {}", rowEvent.getFullTableName());
-
-    } else {
-      // LOG.info("event type is {}", out.getEventType());
-    }
-
-  }
 
   private ValidBinlogOutput distinguishEvent(BinlogEvent event) {
     if (event instanceof GTidEvent) {
@@ -279,8 +180,8 @@ public class LocalBinlogReader {
       BaseRowEvent rowEvent = (BaseRowEvent) event;
       rowEvent.parseTableId(eventPayload, pos);
     }
-    event.parse(eventPayload, pos);
     event.acceptOccurTime(eventHeader.getTimestamp());
+    event.parse(eventPayload, pos);
     return event;
   }
 
@@ -308,23 +209,13 @@ public class LocalBinlogReader {
     return buf;
   }
 
-  // private byte[] readResponsePayload(final FileInputStream fs) throws IOException{
-  // readEventHeader(fs);
-  // return readByLen(fs,this.header.getPayloadLen());
-  // }
 
   public static void main(String[] args) {
-    // String path = args[0];
-    // if (path == null || path.length() == 0) {
-    // System.out.println("please specify binlog file.");
-    // return;
-    // }
     long start = System.currentTimeMillis();
     for (String path : args) {
       LocalBinlogReader reader = new LocalBinlogReader(path);
-      reader.traversal();
+      reader.traversal(new DefaultLocalEventProcessor());
     }
     System.out.println(System.currentTimeMillis() - start);
-    // System.out.println("all gtid:" + count);
   }
 }
