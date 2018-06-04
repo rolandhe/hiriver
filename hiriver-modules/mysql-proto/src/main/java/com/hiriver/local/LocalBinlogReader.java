@@ -36,7 +36,10 @@ public class LocalBinlogReader {
 
   private final String filePath;
   private final BinlogContext context = new BinlogContext();
-  private boolean checkSum = false;
+  /**
+   * mysql binlog使用使用校验，mysql 7默认开启校验字段
+   */
+  private final boolean checkSum;
   private int EVENT_HEADER_LEN = 19;
 
   public static class FileEndExp extends RuntimeException {
@@ -50,8 +53,9 @@ public class LocalBinlogReader {
     }
   }
 
-  public LocalBinlogReader(String filePath) {
+  public LocalBinlogReader(String filePath,boolean checkSum) {
     this.filePath = filePath;
+    this.checkSum = checkSum;
     context.setTableMetaProvider(new TableMetaProvider() {
 
       @Override
@@ -213,7 +217,7 @@ public class LocalBinlogReader {
   public static void main(String[] args) {
     long start = System.currentTimeMillis();
     for (String path : args) {
-      LocalBinlogReader reader = new LocalBinlogReader(path);
+      LocalBinlogReader reader = new LocalBinlogReader(path, true);
       reader.traversal(new DefaultLocalEventProcessor());
     }
     System.out.println(System.currentTimeMillis() - start);
