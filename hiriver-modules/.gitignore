@@ -111,7 +111,6 @@ buildNumber.properties
 *.iml
 target
 lib.tar.gz
-lib
 
 .DS_Store
 .ser

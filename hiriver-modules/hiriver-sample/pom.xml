@@ -6,13 +6,16 @@
         <groupId>com.hiriver</groupId>
         <artifactId>hiriver-modules</artifactId>
         <relativePath>../</relativePath>
-        <version>1.2.2</version>
+        <version>1.2.3</version>
     </parent>
     <artifactId>hiriver-sample</artifactId>
     <packaging>war</packaging>
 
     <name>hiriver-sample Maven Webapp</name>
     <url>http://maven.apache.org</url>
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
@@ -58,7 +61,7 @@
         <dependency>
             <groupId>com.hiriver</groupId>
             <artifactId>hiriver</artifactId>
-            <version>1.2.2</version>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
     <build>

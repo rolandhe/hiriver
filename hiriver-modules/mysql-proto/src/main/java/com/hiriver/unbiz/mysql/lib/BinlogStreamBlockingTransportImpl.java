@@ -1,46 +1,22 @@
 package com.hiriver.unbiz.mysql.lib;
 
+import com.hiriver.unbiz.mysql.lib.filter.TableFilter;
+import com.hiriver.unbiz.mysql.lib.output.ColumnDefinition;
+import com.hiriver.unbiz.mysql.lib.protocol.*;
+import com.hiriver.unbiz.mysql.lib.protocol.binlog.*;
+import com.hiriver.unbiz.mysql.lib.protocol.binlog.event.*;
+import com.hiriver.unbiz.mysql.lib.protocol.binlog.exp.ReadTimeoutExp;
+import com.hiriver.unbiz.mysql.lib.protocol.binlog.extra.BinlogPosition;
+import com.hiriver.unbiz.mysql.lib.protocol.text.*;
+import com.hiriver.unbiz.mysql.lib.protocol.tool.PacketTool;
+import com.hiriverunbiz.mysql.lib.exp.InvalidMysqlDataException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.hiriver.unbiz.mysql.lib.filter.TableFilter;
-import com.hiriver.unbiz.mysql.lib.output.ColumnDefinition;
-import com.hiriver.unbiz.mysql.lib.protocol.ERRPacket;
-import com.hiriver.unbiz.mysql.lib.protocol.OKPacket;
-import com.hiriver.unbiz.mysql.lib.protocol.Position;
-import com.hiriver.unbiz.mysql.lib.protocol.Request;
-import com.hiriver.unbiz.mysql.lib.protocol.Response;
-import com.hiriver.unbiz.mysql.lib.protocol.binlog.BinlogContext;
-import com.hiriver.unbiz.mysql.lib.protocol.binlog.BinlogEvent;
-import com.hiriver.unbiz.mysql.lib.protocol.binlog.BinlogEventHeader;
-import com.hiriver.unbiz.mysql.lib.protocol.binlog.RegisterRequest;
-import com.hiriver.unbiz.mysql.lib.protocol.binlog.TableMeta;
-import com.hiriver.unbiz.mysql.lib.protocol.binlog.TableMetaProvider;
-import com.hiriver.unbiz.mysql.lib.protocol.binlog.ValidBinlogOutput;
-import com.hiriver.unbiz.mysql.lib.protocol.binlog.ValidEventType;
-import com.hiriver.unbiz.mysql.lib.protocol.binlog.event.BaseRowEvent;
-import com.hiriver.unbiz.mysql.lib.protocol.binlog.event.EventFactory;
-import com.hiriver.unbiz.mysql.lib.protocol.binlog.event.FormatDescriptionEvent;
-import com.hiriver.unbiz.mysql.lib.protocol.binlog.event.GTidEvent;
-import com.hiriver.unbiz.mysql.lib.protocol.binlog.event.QueryEvent;
-import com.hiriver.unbiz.mysql.lib.protocol.binlog.event.RotateEvent;
-import com.hiriver.unbiz.mysql.lib.protocol.binlog.event.TableMapEvent;
-import com.hiriver.unbiz.mysql.lib.protocol.binlog.event.XidEvent;
-import com.hiriver.unbiz.mysql.lib.protocol.binlog.exp.ReadTimeoutExp;
-import com.hiriver.unbiz.mysql.lib.protocol.binlog.extra.BinlogPosition;
-import com.hiriver.unbiz.mysql.lib.protocol.text.ColumnDefinitionResponse;
-import com.hiriver.unbiz.mysql.lib.protocol.text.FieldListCommandResponse;
-import com.hiriver.unbiz.mysql.lib.protocol.text.ResultsetRowResponse;
-import com.hiriver.unbiz.mysql.lib.protocol.text.TextCommandFieldListRequest;
-import com.hiriver.unbiz.mysql.lib.protocol.text.TextCommandQueryRequest;
-import com.hiriver.unbiz.mysql.lib.protocol.text.TextCommandQueryResponse;
-import com.hiriver.unbiz.mysql.lib.protocol.tool.PacketTool;
-import com.hiriverunbiz.mysql.lib.exp.InvalidMysqlDataException;
 
 /**
  * 用于binlog复制的堵塞模式的通信实现。一般用于mysql的主从同步实现。<br>
@@ -331,6 +307,17 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
     }
   }
 
+
+    public BinlogEvent readWithoutSpecialEvent() {
+        Position pos = Position.factory();
+        BinlogEvent event = readEvent(pos);
+        if (processSpecialEvent(event)) {
+            return null;
+        }
+        return event;
+    }
+
+  
   @Override
   public ValidBinlogOutput getBinlogOutputImmediately() {
 
@@ -361,18 +348,22 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
    */
   private ValidBinlogOutput distinguishEvent(BinlogEvent event) {
     if (event instanceof GTidEvent) {
-      return new ValidBinlogOutput(event, context.getRotateEvent().getNextBinlogName(), ValidEventType.GTID);
+      return new ValidBinlogOutput(event, context.getRotateEvent().getNextBinlogName(),
+          ValidEventType.GTID);
     }
     if (event instanceof BaseRowEvent) {
-      return new ValidBinlogOutput(event, context.getRotateEvent().getNextBinlogName(), ValidEventType.ROW);
+      return new ValidBinlogOutput(event, context.getRotateEvent().getNextBinlogName(),
+          ValidEventType.ROW);
     }
     if (event instanceof XidEvent) {
-      return new ValidBinlogOutput(event, context.getRotateEvent().getNextBinlogName(), ValidEventType.TRANS_COMMIT);
+      return new ValidBinlogOutput(event, context.getRotateEvent().getNextBinlogName(),
+          ValidEventType.TRANS_COMMIT);
     }
     if (event instanceof QueryEvent) {
       QueryEvent qEvent = (QueryEvent) event;
       if ("BEGIN".equals(qEvent.getQuery())) {
-        return new ValidBinlogOutput(event, context.getRotateEvent().getNextBinlogName(), ValidEventType.TRAN_BEGIN);
+        return new ValidBinlogOutput(event, context.getRotateEvent().getNextBinlogName(),
+            ValidEventType.TRAN_BEGIN);
       }
       if ("ROLLBACK".equals(qEvent.getQuery())) {
         return new ValidBinlogOutput(event, context.getRotateEvent().getNextBinlogName(),
@@ -429,7 +420,8 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
     BinlogEventHeader eventHeader = new BinlogEventHeader();
 
     eventHeader.parse(buf, pos);
-    BinlogEvent event = EventFactory.factory(eventHeader.getEventType(), eventHeader.getLogPos(), context, checkSum);
+    BinlogEvent event = EventFactory.factory(eventHeader.getEventType(), eventHeader.getLogPos(),
+        context, checkSum);
     tryParseTableIdOfRowEvent(event, buf, pos);
     setupFilterForTableMapEvent(event);
     if (!filter(event)) {
@@ -504,6 +496,19 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
 
     return true;
   }
+
+  /**
+   * only valid after readeEvent
+   */
+  public String currentBinlogFile() {
+    return context.getRotateEvent().getNextBinlogName();
+  }
+
+
+  public Long mysqlConnectionId() {
+    return this.socketHolder == null ? null : this.socketHolder.connectionId;
+  }
+
 
   public TableMetaProvider getTableMetaProvider() {
     return tableMetaProvider;

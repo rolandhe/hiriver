@@ -45,7 +45,7 @@ public abstract class AbstractBlockingTransport implements BlockingTransport {
     /**
      * 虽然BlockingTransport是<b>非线程安全</b>的,但BlockingTransport可能被池化，会被多个线程 使用，使用<b>volatile关键词</b>解决线程不可见问题。
      */
-    private volatile SocketHolder socketHolder;
+    protected volatile SocketHolder socketHolder;
     private volatile boolean isOpened = false;
     private volatile boolean isOpeningPhrase = false;
 
@@ -53,7 +53,7 @@ public abstract class AbstractBlockingTransport implements BlockingTransport {
      * BlockingTransport是线程不安全的，因此一个BlockingTransport在某一时刻只能被一个线程使用。在一个
      * 线程的生命周期内header对象能被重复的使用。使用<b>final关键词</b>保证该header字段本身不能被线程修改，
      * 这保证了线程安全，同时header的内容没有必要被其他线程获取，只要本线程可见即可，因此PacketHeader类没必要做 线程安全处理。
-     * 
+     *
      */
     private final PacketHeader header = new PacketHeader();
 
@@ -68,22 +68,23 @@ public abstract class AbstractBlockingTransport implements BlockingTransport {
 
     /**
      * 底层socket的占位符对象，用于保存当前Transport的底层socket和输入、输出流。
-     * 
+     *
      * <p>
      * 它是一个非可变的类型，因此是线程安全的。
      * </p>
-     * 
+     *
      * @author hexiufeng
-     * 
+     *
      */
     protected static class SocketHolder {
         final Socket socket;
         final InputStream in;
         final OutputStream out;
+        Long connectionId;
 
         /**
          * 构造方法,之所以传入socket.getInputStream和socket.getOutStream,是因为不想在构造方法抛出异常
-         * 
+         *
          * @param socket socket instance
          * @param in socket.getInputStream
          * @param out socket.getOutStream
@@ -101,7 +102,7 @@ public abstract class AbstractBlockingTransport implements BlockingTransport {
 
     /**
      * 构造函数
-     * 
+     *
      * @param host host
      * @param port port
      * @param userName user name
@@ -113,7 +114,7 @@ public abstract class AbstractBlockingTransport implements BlockingTransport {
 
     /**
      * 构造函数
-     * 
+     *
      * @param host host
      * @param port port
      * @param userName user name
@@ -130,7 +131,7 @@ public abstract class AbstractBlockingTransport implements BlockingTransport {
 
     /**
      * 获取实现类的logger对象
-     * 
+     *
      * @return 实现类的logger对象
      */
     protected abstract Logger getSubClassLogger();
@@ -145,14 +146,14 @@ public abstract class AbstractBlockingTransport implements BlockingTransport {
      * <p>
      * 在连接刚被建立后可能需要执行一系列的初始化sql。
      * </p>
-     * 
+     *
      * @param sql 执行初始化连接的sql语句
      */
     protected abstract void intiTransport(String sql);
 
     /**
      * 获取当前有效的日志记录对象
-     * 
+     *
      * @return Logger
      */
     private Logger getLogger() {
@@ -198,6 +199,7 @@ public abstract class AbstractBlockingTransport implements BlockingTransport {
         // read handshake
         HandShakeV10 handShake = new HandShakeV10();
         handShake.parse(readResponsePayload());
+        this.socketHolder.connectionId=handShake.getConnectionId();
         // send handshake response request
         HandShakeResponseV41 shakeResp = new HandShakeResponseV41(handShake, header.getSequenceId() + 1,maxMaxPacketSize);
         shakeResp.setUserName(userName);
@@ -225,7 +227,7 @@ public abstract class AbstractBlockingTransport implements BlockingTransport {
 
     /**
      * 检查当前响应数据是否是ERROR Packet数据
-     * 
+     *
      * @param buffer 响应数据
      */
     protected void checkErrPacket(byte[] buffer) {
@@ -328,7 +330,7 @@ public abstract class AbstractBlockingTransport implements BlockingTransport {
 
     /**
      * 读取指定大小的数据块
-     * 
+     *
      * @param len 期望读取数据的字节数
      * @return 数据块
      */

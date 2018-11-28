@@ -28,6 +28,8 @@ public class ValidBinlogOutput {
      */
     private final ValidEventType eventType;
 
+    private String serverUuid;
+
     public ValidBinlogOutput(BinlogEvent event,String binlogFileName,ValidEventType eventType) {
         this.event = event;
         this.binlogFileName = binlogFileName;
@@ -59,5 +61,13 @@ public class ValidBinlogOutput {
     
     public String getEventBinlogPos(){
         return binlogFileName + ":" + getEvent().getBinlogEventPos();
+    }
+
+    public String getServerUuid() {
+        return serverUuid;
+    }
+
+    public void setServerUuid(String serverUuid) {
+        this.serverUuid = serverUuid;
     }
 }
