@@ -1,5 +1,6 @@
 package com.hiriver.streamsource.impl;
 
+import com.hiriver.streamsource.DbHostInfo;
 import com.hiriver.streamsource.StreamSource;
 import com.hiriver.unbiz.mysql.lib.TransportConfig;
 import com.hiriver.unbiz.mysql.lib.filter.TableFilter;
@@ -10,7 +11,7 @@ import com.hiriver.unbiz.mysql.lib.filter.TableFilter;
  * @author hexiufeng
  *
  */
-public abstract  class AbstractStreamSource implements StreamSource {
+public abstract class AbstractStreamSource implements StreamSource, DbHostInfo {
     /**
      * 通信属性
      */
@@ -35,18 +36,22 @@ public abstract  class AbstractStreamSource implements StreamSource {
     public void setTransportConfig(TransportConfig transportConfig) {
         this.transportConfig = transportConfig;
     }
+
+    @Override
     public String getUserName() {
         return userName;
     }
     public void setUserName(String userName) {
         this.userName = userName;
     }
+    @Override
     public String getPassword() {
         return password;
     }
     public void setPassword(String password) {
         this.password = password;
     }
+    @Override
     public String getHostUrl() {
         return hostUrl;
     }

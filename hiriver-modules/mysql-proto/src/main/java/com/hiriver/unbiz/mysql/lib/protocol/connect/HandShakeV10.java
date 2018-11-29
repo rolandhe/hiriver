@@ -20,7 +20,7 @@ public class HandShakeV10 extends AbstractResponse implements Response {
 
     private int protocolVersion;
     private String serverVer;
-    private int connectionId;
+    private long connectionId;
     private byte[] authPart1;
     private int filler;
     private int capabilityLow;
@@ -48,7 +48,7 @@ public class HandShakeV10 extends AbstractResponse implements Response {
         byte[] sv = MysqlStringUtils.readNulString(buf, pos);
         serverVer = new String(sv);
 
-        connectionId = MysqlNumberUtils.read4Int(buf, pos);
+        connectionId = MysqlNumberUtils.readUnsignedInt(buf, pos);
 
         authPart1 = MysqlStringUtils.readFixString(buf, pos, 8);
 
@@ -128,7 +128,7 @@ public class HandShakeV10 extends AbstractResponse implements Response {
         return serverVer;
     }
 
-    public int getConnectionId() {
+    public long getConnectionId() {
         return connectionId;
     }
 

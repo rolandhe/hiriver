@@ -175,7 +175,21 @@ public class MysqlNumberUtils {
         return value;
     }
 
+
     /**
+     * 读取4字节无符号整数，小端
+     *
+     * @param buf
+     * @param off
+     * @return
+     */
+    public static long readUnsignedInt(byte[] buf, Position off) {
+        return readNInt(buf, off, 4);
+    }
+
+
+
+  /**
      * 读取大端长整形整数
      * 
      * @param buf

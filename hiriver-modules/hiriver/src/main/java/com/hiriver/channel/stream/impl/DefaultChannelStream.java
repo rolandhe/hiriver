@@ -1,38 +1,31 @@
 package com.hiriver.channel.stream.impl;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.hiriver.channel.BinlogDataSet;
-import com.hiriver.channel.stream.BinlogPositionStoreTrigger;
-import com.hiriver.channel.stream.BufferableBinlogDataSet;
-import com.hiriver.channel.stream.ChannelBuffer;
-import com.hiriver.channel.stream.ChannelStream;
-import com.hiriver.channel.stream.Consumer;
-import com.hiriver.channel.stream.TransactionRecognizer;
+import com.hiriver.channel.stream.*;
 import com.hiriver.position.store.BinlogPositionStore;
 import com.hiriver.streamsource.StreamSource;
 import com.hiriver.unbiz.mysql.lib.output.BinlogResultRow;
 import com.hiriver.unbiz.mysql.lib.output.ColumnDefinition;
+import com.hiriver.unbiz.mysql.lib.protocol.binlog.BinlogFileBinlogPosition;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.GTidBinlogPosition;
+import com.hiriver.unbiz.mysql.lib.protocol.binlog.TimestampBinlogPosition;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.ValidBinlogOutput;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.event.BaseRowEvent;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.exp.FetalParseValueExp;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.exp.ReadTimeoutExp;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.exp.TableAlreadyModifyExp;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.extra.BinlogPosition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 缺省的{@link ChannelStream}，内部会启动两个线程，一个用于从mysql数据源读取binlog数据， 另一个用于消费数据。在GTID模式下，在与mysql断开连接后重连时它会自动跳过第一个事务，这样防止
@@ -79,9 +72,9 @@ public class DefaultChannelStream implements ChannelStream {
      */
     private BinlogPosition configBinlogPos;
     /**
-     * 事务的识别器，缺省是GTIDTransactionRecognizer
+     * 事务的识别器，缺省根据configBinlogPos类型判断
      */
-    private TransactionRecognizer transactionRecognizer = new GTIDTransactionRecognizer();
+    private TransactionRecognizer transactionRecognizer;
     /**
      * 同步点存储器
      */
@@ -239,6 +232,7 @@ public class DefaultChannelStream implements ChannelStream {
      * </ul>
      */
     private void providerThreadCore() {
+        initIfNeed();
         while (true) {
             if (context.shutDownTrigger) {
                 context.shutDownProviderEvent.countDown();
@@ -273,10 +267,10 @@ public class DefaultChannelStream implements ChannelStream {
                         transactionRecognizer.getGTId(), transactionRecognizer.getTransBinlogPos());
                 ensureDispatch(new DefaultBufferableBinlogDataSet(ds));
 
-                LOG.info("{},start trans {}", this.channelId, transactionRecognizer.getCurrentTransBeginPos());
+                LOG.debug("{},start trans {}", this.channelId, transactionRecognizer.getCurrentTransBeginPos());
             }
             if (transactionRecognizer.tryRecognizePos(validOutput)) {
-                LOG.info("{},recognize pos {}", this.channelId, transactionRecognizer.getCurrentTransBeginPos());
+                LOG.debug("{},recognize pos {}", this.channelId, transactionRecognizer.getCurrentTransBeginPos());
             }
             if (validOutput.isRowEvent()) {
                 if (isSkipCurrentTrans) {
@@ -285,7 +279,7 @@ public class DefaultChannelStream implements ChannelStream {
                     continue;
                 }
 
-                LOG.info("{},dispatch row event of {}", this.channelId,
+                LOG.debug("{},dispatch row event of {}", this.channelId,
                         transactionRecognizer.getCurrentTransBeginPos());
                 BufferableBinlogDataSet bufferDs = convert(validOutput);
                 ensureDispatch(bufferDs);
@@ -303,6 +297,18 @@ public class DefaultChannelStream implements ChannelStream {
                     isSkipCurrentTrans = false;
                 }
                 LOG.debug("{},end trans, {}", this.channelId, transactionRecognizer.getCurrentTransBeginPos());
+            }
+        }
+    }
+
+    private void initIfNeed() {
+        if (this.transactionRecognizer == null && this.configBinlogPos != null) {
+            if (this.configBinlogPos instanceof GTidBinlogPosition) {
+                this.transactionRecognizer = new GTIDTransactionRecognizer();
+            } else if (this.configBinlogPos instanceof BinlogFileBinlogPosition) {
+                this.transactionRecognizer = new BinlogNameAndPosTransactionRecognizer();
+            } else if (this.configBinlogPos instanceof TimestampBinlogPosition) {
+                this.transactionRecognizer = new TimestampTransactionRecognizer();
             }
         }
     }

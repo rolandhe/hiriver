@@ -46,4 +46,11 @@ public class BinlogFileBinlogPosition implements BinlogPosition {
         return toString().equals(posStore.toString());
     }
 
+    public long getPos() {
+        return pos;
+    }
+
+    public String getBinlogFileName() {
+        return binlogFileName;
+    }
 }

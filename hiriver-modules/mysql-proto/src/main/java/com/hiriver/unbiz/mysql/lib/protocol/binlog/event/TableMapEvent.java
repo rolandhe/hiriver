@@ -74,7 +74,7 @@ public class TableMapEvent extends AbstractBinlogEvent implements BinlogEvent {
 
         // 如果设置了过滤条件，并且过滤不通过，不再继续解析，快速退出
         if(tableFilter != null && !tableFilter.filter(schema,tableName)) {
-            LOGGER.info("{}.{} is filtered, quick exit.", schema , tableName);
+            LOGGER.debug("{}.{} is filtered, quick exit.", schema , tableName);
             return;
         }
 
