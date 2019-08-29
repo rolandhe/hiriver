@@ -36,6 +36,7 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
   private int serverId;
   private TableFilter tableFilter;
   private boolean checkSum = false;
+  private final TableMetaProiverFactory tableMetaProviderFactory;
 
   private Position defaultPos = Position.factory();
   /**
@@ -49,127 +50,51 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
     }
 
   };
+  private TableMetaProvider tableMetaProvider;
   /**
    * 表元数据的提供者实现，从db中读取，基于 Text Protocol的COM_FIELD_LIST指令，比desc table name sql更有效， 返回更多数据，
    * 使用show columns可读取enum or set的元数据
    */
-  private TableMetaProvider tableMetaProvider = new TableMetaProvider() {
-    private final Map<String, TableMeta> cache = new HashMap<String, TableMeta>();
+  private final TableMetaProvider defaultTableMetaProvider = new ShowColumnListCommandTableMetaProvider() {
+
 
     @Override
-    public TableMeta getTableMeta(long tableId, TableMapEvent tableMapEvent) {
-      String schemaName = tableMapEvent.getSchema();
-      String tableName = tableMapEvent.getTableName();
-      String fullTableName = schemaName + "." + tableName;
-      if (cache.containsKey(fullTableName)) {
-        TableMeta tableMeta = cache.get(fullTableName);
-        if (tableMeta.getTableId() == tableId) {
-          return tableMeta;
-        }
-      }
-      TableMeta tableMeta = new TableMeta(tableId);
-      TextProtocolBlockingTransport textTrans = new TextProtocolBlockingTransportImpl(getHost(), getPort(),
-          getUserName(), getPassword(), schemaName, getTransportConfig());
-
-      textTrans.open();
-      try {
-        readFieldListMeta(tableName, tableMeta, textTrans);
-        if(tableMapEvent.hasEnumOrSet()){
-          Map<String,ColumnDefinition> map = new HashMap<>();
-          for(ColumnDefinition definition : tableMeta.getColumnMetaList()){
-            map.put(definition.getColumName(),definition);
-          }
-          readEnumOrSetMeta(tableName, map, textTrans);
-        }
-
-      } finally {
-        textTrans.close();
-      }
-      cache.put(fullTableName, tableMeta);
-      return tableMeta;
+    protected String getHost() {
+      return BinlogStreamBlockingTransportImpl.this.getHost();
     }
 
-    /**
-     *
-     * 读取表字段元数据
-     *
-     * @param tableName
-     * @param tableMeta
-     * @param textTrans
-     */
-    private void readFieldListMeta(String tableName, TableMeta tableMeta, TextProtocolBlockingTransport textTrans) {
-      TextCommandFieldListRequest request = new TextCommandFieldListRequest(tableName);
-      FieldListCommandResponse response = textTrans.showFieldList(request);
-      for (ColumnDefinitionResponse coldef : response.getColumnList()) {
-        ColumnDefinition def = createColumnDefinition(coldef);
-        tableMeta.addColumn(def);
-      }
+    @Override
+    protected int getPort() {
+      return BinlogStreamBlockingTransportImpl.this.getPort();
     }
 
-    /**
-     * 读取enum 或者set类型的元数据，通过show columns sql命令读取类型，然后解析
-     *
-     * @param tableName
-     * @param map
-     * @param textTrans
-     */
-    private void readEnumOrSetMeta(String tableName, Map<String,ColumnDefinition> map, TextProtocolBlockingTransport textTrans) {
-      String sql = "show columns from " + tableName + " where Type like 'set(%' or Type like 'enum(%'";
-      TextCommandQueryResponse response = textTrans.execute(sql);
-      if(response.getRowList() == null || response.getRowList().size() == 0){
-        return;
-      }
-      for (ResultsetRowResponse row  : response.getRowList()) {
-        String name = row.getValueList().get(0).getValueAsString();
-        String value = row.getValueList().get(1).getValueAsString();
-        LOGGER.info("enum or set of {}.{}:{}",tableName,name,value);
-        if(value.startsWith("enum(")){
-          String enumValue = value.substring("enum(".length(),value.length() - 1);
-          map.get(name).getEnumList().addAll(parseEnumOrSetValue(enumValue));
-        }
-        if(value.startsWith("set(")){
-          String setValue = value.substring("set(".length(),value.length() - 1);
-          map.get(name).getSetList().addAll(parseEnumOrSetValue(setValue));
-        }
-      }
-    }
-    private List<String> parseEnumOrSetValue(String value){
-      String[] array = value.split(",");
-      List<String> list = new ArrayList<>(array.length);
-      for(String v : array){
-        list.add(v.substring(1,v.length() - 1));
-      }
-      return list;
+    @Override
+    protected String getUserName() {
+      return BinlogStreamBlockingTransportImpl.this.getUserName();
     }
 
-
-    /**
-     * 从{@link ColumnDefinitionResponse}转换成外部可以识别的 {@link ColumnDefinition}
-     * 
-     * @param coldef ColumnDefinitionResponse定义
-     * @return ColumnDefinition
-     */
-    private ColumnDefinition createColumnDefinition(ColumnDefinitionResponse coldef) {
-      ColumnDefinition def = new ColumnDefinition();
-      def.setColumName(coldef.getName());
-      def.setCharset(coldef.getCharset());
-      def.setKey(coldef.isKey());
-      def.setPrimary(coldef.isPrimayKey());
-      def.setType(coldef.getType());
-      def.setUnique(coldef.isUniqueKey());
-      def.setUnsigned(coldef.isUnsigned());
-      def.setLen(coldef.getColumnLength());
-      return def;
+    @Override
+    protected String getPassword() {
+      return BinlogStreamBlockingTransportImpl.this.getPassword();
     }
 
+    @Override
+    protected TransportConfig getTransportConfig() {
+      return BinlogStreamBlockingTransportImpl.this.getTransportConfig();
+    }
   };
 
   public BinlogStreamBlockingTransportImpl() {
-
+    tableMetaProviderFactory = null;
   }
 
   public BinlogStreamBlockingTransportImpl(String host, int port, String userName, String password) {
     super(host, port, userName, password, null);
+    tableMetaProviderFactory = null;
+  }
+  public BinlogStreamBlockingTransportImpl(String host, int port, String userName, String password,TableMetaProiverFactory tableMetaProviderFactory) {
+    super(host, port, userName, password, null);
+    this.tableMetaProviderFactory = tableMetaProviderFactory;
   }
 
   @Override
@@ -259,7 +184,7 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
 
   @Override
   public void dump(BinlogPosition binlogPos) {
-    context.setTableMetaProvider(tableMetaProvider);
+    context.setTableMetaProvider(takeTableMetaProvider());
     super.open();
     registerSlave();
     super.writeRequest(binlogPos.packetDumpRequest(this.serverId));
@@ -273,6 +198,17 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
       }
 
     };
+  }
+
+  private TableMetaProvider takeTableMetaProvider() {
+    if(tableMetaProvider != null) {
+      return tableMetaProvider;
+    }
+    if(this.tableMetaProviderFactory == null) {
+      return defaultTableMetaProvider;
+    }
+    tableMetaProvider = tableMetaProviderFactory.factory(getHost(),getPort(),getUserName(),getPassword(),getTransportConfig());
+    return tableMetaProvider;
   }
 
   /**
@@ -510,13 +446,13 @@ public class BinlogStreamBlockingTransportImpl extends AbstractBlockingTransport
   }
 
 
-  public TableMetaProvider getTableMetaProvider() {
-    return tableMetaProvider;
-  }
+//  public TableMetaProvider getTableMetaProvider() {
+//    return tableMetaProvider;
+//  }
 
-  public void setTableMetaProvider(TableMetaProvider tableMetaProvider) {
-    this.tableMetaProvider = tableMetaProvider;
-  }
+//  public void setTableMetaProvider(TableMetaProvider tableMetaProvider) {
+//    this.tableMetaProvider = tableMetaProvider;
+//  }
 
   public int getServerId() {
     return serverId;

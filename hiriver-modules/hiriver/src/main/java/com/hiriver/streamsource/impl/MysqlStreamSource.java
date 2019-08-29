@@ -3,6 +3,7 @@ package com.hiriver.streamsource.impl;
 import com.hiriver.streamsource.StreamSource;
 import com.hiriver.unbiz.mysql.lib.BinlogStreamBlockingTransport;
 import com.hiriver.unbiz.mysql.lib.BinlogStreamBlockingTransportImpl;
+import com.hiriver.unbiz.mysql.lib.protocol.binlog.TableMetaProiverFactory;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.ValidBinlogOutput;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.exp.ReadTimeoutExp;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.extra.BinlogPosition;
@@ -17,6 +18,8 @@ import com.hiriver.unbiz.mysql.lib.protocol.binlog.extra.BinlogPosition;
 public class MysqlStreamSource extends AbstractStreamSource implements StreamSource {
     private BinlogStreamBlockingTransport transport;
     private boolean opened = false;
+
+    private TableMetaProiverFactory tableMetaProviderFactory;
     
     /**
      * 初始化BinlogStreamBlockingTransportImpl
@@ -25,7 +28,7 @@ public class MysqlStreamSource extends AbstractStreamSource implements StreamSou
         release();
         String[] array = super.getHostUrl().split(":");
         int port = Integer.parseInt(array[1]);
-        BinlogStreamBlockingTransportImpl t =  new BinlogStreamBlockingTransportImpl(array[0],port,super.getUserName(),super.getPassword());
+        BinlogStreamBlockingTransportImpl t =  new BinlogStreamBlockingTransportImpl(array[0],port,super.getUserName(),super.getPassword(), tableMetaProviderFactory);
         t.setServerId(super.getServerId());
         t.setTransportConfig(super.getTransportConfig());
         t.setTableFilter(getTableFilter());
@@ -62,5 +65,12 @@ public class MysqlStreamSource extends AbstractStreamSource implements StreamSou
         return opened;
     }
 
-    
+
+    public TableMetaProiverFactory getTableMetaProviderFactory() {
+        return tableMetaProviderFactory;
+    }
+
+    public void setTableMetaProviderFactory(TableMetaProiverFactory tableMetaProviderFactory) {
+        this.tableMetaProviderFactory = tableMetaProviderFactory;
+    }
 }
