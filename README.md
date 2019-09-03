@@ -143,6 +143,7 @@ ChannelStream中provider和consumer线程的数据通信基础，它是ChannelBu
 
 ## 事务识别类（TransactionRecognizer）
 用于识别事务的开启、结束，并且记录当前事务的开始位置。针对gtid和binlog file name + pos两种模式，提供2种实现：GTIDTransactionRecognizer和BinlogNameAndPosTransactionRecognizer。
-
+# 字符集问题
+hiriver缺省会调用mysql的show field list命令读取字段的元数据，但该名称存在问题，字段的字符集始终返回utf-8，对于数据库使用其他字符集的情况来说，可以设置MysqlStreamSource的TableMetaProiverFactory属性来解决，目前可以ConfCharsetTableMetaProiverFactory实现类来强制设置字符集。
 # License
 [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
