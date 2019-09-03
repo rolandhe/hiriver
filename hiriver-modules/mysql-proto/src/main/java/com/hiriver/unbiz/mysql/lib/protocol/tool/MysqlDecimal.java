@@ -153,14 +153,14 @@ public class MysqlDecimal {
    * @param buf
    * @param pos
    */
-  private void parseFracSection(byte[] buf, Position pos) {
+   private void parseFracSection(byte[] buf, Position pos) {
     for(int i = 0; i < fracDecSize;i++){
       fracArray[i] = readInt(buf,pos,SIZE_OF_INT32);
-      checkIntValue(intArray[i],DIG_PER_DEC1);
+      checkIntValue(fracArray[i],DIG_PER_DEC1);
     }
     if(fracNoneDecLength > 0){
       fracArray[fracArray.length - 1] = readInt(buf,pos,DIG2BYTES[fracNoneDecLength]);
-      checkIntValue(fracArray[0],fracNoneDecLength);
+      checkIntValue(fracArray[fracArray.length - 1],fracNoneDecLength);
     }
   }
 
