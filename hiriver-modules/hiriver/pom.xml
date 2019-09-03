@@ -7,7 +7,7 @@
         <groupId>com.hiriver</groupId>
         <artifactId>hiriver-modules</artifactId>
         <relativePath>../</relativePath>
-        <version>1.2.3</version>
+        <version>1.2.4</version>
     </parent>
     <artifactId>hiriver</artifactId>
     <name>hiriver</name>
