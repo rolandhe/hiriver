@@ -1,7 +1,6 @@
 package com.hiriver.unbiz.mysql.lib.protocol.binlog;
 
 import com.hiriver.unbiz.mysql.lib.TextProtocolBlockingTransport;
-import com.hiriver.unbiz.mysql.lib.TextProtocolBlockingTransportImpl;
 import com.hiriver.unbiz.mysql.lib.TransportConfig;
 import com.hiriver.unbiz.mysql.lib.output.ColumnDefinition;
 import com.hiriver.unbiz.mysql.lib.protocol.binlog.event.TableMapEvent;
@@ -10,66 +9,41 @@ import com.hiriver.unbiz.mysql.lib.protocol.text.FieldListCommandResponse;
 import com.hiriver.unbiz.mysql.lib.protocol.text.ResultsetRowResponse;
 import com.hiriver.unbiz.mysql.lib.protocol.text.TextCommandFieldListRequest;
 import com.hiriver.unbiz.mysql.lib.protocol.text.TextCommandQueryResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public abstract class ShowColumnListCommandTableMetaProvider implements TableMetaProvider {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ShowColumnListCommandTableMetaProvider.class);
+public abstract class ShowColumnListCommandTableMetaProvider extends AbstractTableMetaProvider implements TableMetaProvider {
 
-    final Map<String, TableMeta> cache = new HashMap<String, TableMeta>();
-    @Override
-    public TableMeta getTableMeta(long tableId, TableMapEvent tableMapEvent) {
-        String schemaName = tableMapEvent.getSchema();
-        String tableName = tableMapEvent.getTableName();
-        String fullTableName = schemaName + "." + tableName;
-        if (cache.containsKey(fullTableName)) {
-            TableMeta tableMeta = cache.get(fullTableName);
-            if (tableMeta.getTableId() == tableId) {
-                return tableMeta;
+    protected List<ColumnDefinition> readMeta(String tableName, TableMapEvent tableMapEvent, TextProtocolBlockingTransport textTrans) {
+        List<ColumnDefinition> list = readFieldListMeta(tableName, textTrans);
+        if(tableMapEvent.hasEnumOrSet()){
+            Map<String, ColumnDefinition> map = new HashMap<>();
+            for(ColumnDefinition definition : list){
+                map.put(definition.getColumName(),definition);
             }
+            readEnumOrSetMeta(tableName, map, textTrans);
         }
-        TableMeta tableMeta = new TableMeta(tableId);
-        TextProtocolBlockingTransport textTrans = new TextProtocolBlockingTransportImpl(getHost(), getPort(),
-                getUserName(), getPassword(), schemaName, getTransportConfig());
-
-        textTrans.open();
-        try {
-            readFieldListMeta(tableName, tableMeta, textTrans);
-            if(tableMapEvent.hasEnumOrSet()){
-                Map<String, ColumnDefinition> map = new HashMap<>();
-                for(ColumnDefinition definition : tableMeta.getColumnMetaList()){
-                    map.put(definition.getColumName(),definition);
-                }
-                readEnumOrSetMeta(tableName, map, textTrans);
-            }
-
-        } finally {
-            textTrans.close();
-        }
-        cache.put(fullTableName, tableMeta);
-        return tableMeta;
+        return list;
     }
-
     /**
      *
      * 读取表字段元数据
      *
      * @param tableName
-     * @param tableMeta
      * @param textTrans
      */
-    private void readFieldListMeta(String tableName, TableMeta tableMeta, TextProtocolBlockingTransport textTrans) {
+    private List<ColumnDefinition>  readFieldListMeta(String tableName,  TextProtocolBlockingTransport textTrans) {
+        List<ColumnDefinition> list = new ArrayList<>();
         TextCommandFieldListRequest request = new TextCommandFieldListRequest(tableName);
         FieldListCommandResponse response = textTrans.showFieldList(request);
         for (ColumnDefinitionResponse coldef : response.getColumnList()) {
             ColumnDefinition def = createColumnDefinition(coldef);
-            tableMeta.addColumn(def);
+            list.add(def);
         }
+        return list;
     }
 
     /**

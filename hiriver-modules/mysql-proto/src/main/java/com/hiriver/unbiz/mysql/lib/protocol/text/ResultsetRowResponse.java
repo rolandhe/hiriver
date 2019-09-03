@@ -46,6 +46,7 @@ public class ResultsetRowResponse extends AbstractResponse implements Response {
     private ColumnValue parseColumn(byte[] buf, int column,Position pos) {
         
         if ((buf[pos.getPos()] & 0xff) == 0xfb) {
+            pos.forwardPos();
             return null;
         } else {
             int lenc = (int) MysqlNumberUtils.readLencodeLong(buf, pos);
