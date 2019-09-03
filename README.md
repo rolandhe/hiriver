@@ -1,3 +1,10 @@
+# release notes
+## V1.2.4
+
++ 修复decimal类型解析问题
++ 使用SHOW COLOMNS sql 代替 show field list command，解决charset识别问题
+
+ 
 # 什么是hiriver？
 hiriver是纯java开发的、高性能的、基于解析mysql row base binlog技术实现的用于监控mysql数据变化并分发这些变化的框架。它提供了一套完整的框架，内置数据监控线程和数据消费线程，对外提供简单的Consumer接口，开发者可以根据自己的业务场景自行实现Consumer接口，而不不必关心线程问题。
 ## 实现原理
