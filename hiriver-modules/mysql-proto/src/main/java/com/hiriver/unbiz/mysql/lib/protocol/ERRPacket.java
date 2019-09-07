@@ -30,8 +30,8 @@ public class ERRPacket extends AbstractResponse implements Response {
         Position pos = Position.factory();
         header = MysqlNumberUtils.read1Int(buf, pos);
         errorCode = MysqlNumberUtils.read2Int(buf, pos);
-        sqlStateMarker = MysqlNumberUtils.read1Int(buf, pos);
-        sqlState = MysqlStringUtils.readFixString(buf, pos, 5);
+//        sqlStateMarker = MysqlNumberUtils.read1Int(buf, pos);
+//        sqlState = MysqlStringUtils.readFixString(buf, pos, 3);
         try {
             errorMessage = new String(MysqlStringUtils.readEofString(buf, pos, super.isCheckSum()), "utf-8");
         } catch (UnsupportedEncodingException e) {

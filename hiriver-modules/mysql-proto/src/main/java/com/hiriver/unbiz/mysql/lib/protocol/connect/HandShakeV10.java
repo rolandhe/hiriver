@@ -1,11 +1,9 @@
 package com.hiriver.unbiz.mysql.lib.protocol.connect;
 
-import com.hiriver.unbiz.mysql.lib.protocol.AbstractResponse;
-import com.hiriver.unbiz.mysql.lib.protocol.CapabilityFlagConst;
-import com.hiriver.unbiz.mysql.lib.protocol.Position;
-import com.hiriver.unbiz.mysql.lib.protocol.Response;
+import com.hiriver.unbiz.mysql.lib.protocol.*;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlNumberUtils;
 import com.hiriver.unbiz.mysql.lib.protocol.datautils.MysqlStringUtils;
+import com.hiriver.unbiz.mysql.lib.protocol.tool.PacketTool;
 
 /**
  * Initial Handshake Packet。<br>
@@ -44,6 +42,11 @@ public class HandShakeV10 extends AbstractResponse implements Response {
     @Override
     public void parse(byte[] buf) {
         Position pos = Position.factory();
+        if(PacketTool.isErrPackete(buf)){
+            ERRPacket ep = new ERRPacket();
+            ep.parse(buf);
+            throw new RuntimeException("handshake error:" + ep.getErrorMessage());
+        }
         this.protocolVersion = MysqlNumberUtils.read1Int(buf, pos);
         byte[] sv = MysqlStringUtils.readNulString(buf, pos);
         serverVer = new String(sv);

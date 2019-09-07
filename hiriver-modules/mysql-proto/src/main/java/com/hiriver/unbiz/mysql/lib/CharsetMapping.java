@@ -45,6 +45,7 @@ import java.util.TreeMap;
 public class CharsetMapping {
 
     private static final MysqlCharset[] COLLATION_INDEX_TO_CHARSET;
+    private static final Collation[] ALL_COLLATIONS;
 
     private static final int MAP_SIZE = 2048; // Size of static maps
 
@@ -549,6 +550,8 @@ public class CharsetMapping {
         collation[391] = new Collation(391, "utf32_test_ci", 0, MYSQL_CHARSET_NAME_utf32);
         collation[2047] = new Collation(2047, "utf8_maxuserid_ci", 0, MYSQL_CHARSET_NAME_utf8);
 
+        ALL_COLLATIONS = collation;
+
         COLLATION_INDEX_TO_CHARSET = new MysqlCharset[MAP_SIZE];
         Map<String, Integer> charsetNameToCollationIndexMap = new TreeMap<String, Integer>();
         Map<String, Integer> charsetNameToCollationPriorityMap = new TreeMap<String, Integer>();
@@ -576,9 +579,22 @@ public class CharsetMapping {
     public static String getJavaEncodingForCharsetValue(int value) {
         MysqlCharset cs = COLLATION_INDEX_TO_CHARSET[value];
         if(cs != null){
-            return cs.getMatchingJavaEncoding(null);
+            return cs.getMatchingJavaEncoding(cs.charsetName);
         }
         throw new RuntimeException("don't support mysql charset of value " + value);
+    }
+
+    public static String getJavaEncodingForCollation(String collationName) {
+        for(Collation collation : ALL_COLLATIONS) {
+            if(collation == null) {
+                continue;
+            }
+            if(collation.collationName.equalsIgnoreCase(collationName)) {
+                return getJavaEncodingForCharsetValue(collation.index);
+            }
+        }
+
+        throw new RuntimeException("don't support mysql charset of value " + collationName);
     }
 
     public  static  boolean isBinary(String charsetName){

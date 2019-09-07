@@ -46,5 +46,5 @@
     
     
     
-    <import resource="classpath:spring/spring-timestamp.xml"/>
+    <import resource="classpath:spring/spring-binlog.xml"/>
 </beans>
