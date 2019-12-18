@@ -1,5 +1,6 @@
 package com.hiriver.unbiz.mysql.lib.protocol.binlog;
 
+import com.hiriver.unbiz.mysql.lib.CharsetMapping;
 import com.hiriver.unbiz.mysql.lib.ColumnType;
 import com.hiriver.unbiz.mysql.lib.TextProtocolBlockingTransport;
 import com.hiriver.unbiz.mysql.lib.output.ColumnDefinition;
@@ -50,10 +51,15 @@ public abstract class ShowColumnSqlTableMetaProvider extends AbstractTableMetaPr
         }
 
         String collation = getColumnStringValue(row,2);
-        columnDefinition.setCharset(StringUtils.isEmpty(collation)?null:StringUtils.split(collation,"_")[0]);
+        if(collation == null||collation.length() == 0) {
+            columnDefinition.setCharset(null);
+        } else {
+            String cs = CharsetMapping.getJavaEncodingForCollation(collation);
+            columnDefinition.setCharset(cs);
+        }
         String key = getColumnStringValue(row,4);
         if(!StringUtils.isEmpty(key)) {
-            if(key.equalsIgnoreCase("PRI")) {
+;           if(key.equalsIgnoreCase("PRI")) {
                 columnDefinition.setPrimary(true);
             } else if (key.equalsIgnoreCase("UNI")) {
                 columnDefinition.setUnique(true);

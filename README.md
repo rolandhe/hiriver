@@ -1,3 +1,10 @@
+# release notes
+## V1.2.4
+
++ 修复decimal类型解析问题
++ 使用SHOW COLOMNS sql 代替 show field list command，解决charset识别问题
+
+ 
 # 什么是hiriver？
 hiriver是纯java开发的、高性能的、基于解析mysql row base binlog技术实现的用于监控mysql数据变化并分发这些变化的框架。它提供了一套完整的框架，内置数据监控线程和数据消费线程，对外提供简单的Consumer接口，开发者可以根据自己的业务场景自行实现Consumer接口，而不不必关心线程问题。
 ## 实现原理
@@ -143,7 +150,6 @@ ChannelStream中provider和consumer线程的数据通信基础，它是ChannelBu
 
 ## 事务识别类（TransactionRecognizer）
 用于识别事务的开启、结束，并且记录当前事务的开始位置。针对gtid和binlog file name + pos两种模式，提供2种实现：GTIDTransactionRecognizer和BinlogNameAndPosTransactionRecognizer。
-# 字符集问题
-hiriver缺省会调用mysql的show field list命令读取字段的元数据，但该名称存在问题，字段的字符集始终返回utf-8，对于数据库使用其他字符集的情况来说，可以设置MysqlStreamSource的TableMetaProiverFactory属性来解决，目前可以ConfCharsetTableMetaProiverFactory实现类来强制设置字符集。
+
 # License
 [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)

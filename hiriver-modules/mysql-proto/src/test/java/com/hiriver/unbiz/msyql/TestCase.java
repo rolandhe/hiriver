@@ -1,5 +1,6 @@
 package com.hiriver.unbiz.msyql;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -23,7 +24,13 @@ import com.hiriver.unbiz.mysql.lib.protocol.text.TextCommandFieldListRequest;
 
 public class TestCase {
     @Test
-    public void test() {
+    public void test() throws UnsupportedEncodingException {
+        String latin = "co";
+
+       byte[] buf =  latin.getBytes("Latin1");
+
+       String t = new String(buf,"Latin1");
+
         String[] array = "1-2".split("-");
         System.out.println(UUID.randomUUID().toString());
         TransportConfig conf = new TransportConfig();
@@ -45,11 +52,11 @@ public class TestCase {
 
         TransportConfig conf = new TransportConfig();
         TextProtocolBlockingTransportImpl transport =
-                new TextProtocolBlockingTransportImpl("localhost", 3309, "root", "123456", "cat");
+                new TextProtocolBlockingTransportImpl("localhost", 3306, "root", "");
         transport.setTransportConfig(conf);
 
         transport.open();
-        TextCommandQueryResponse textCommandQueryResponse = transport.execute("SHOW FULL COLUMNS from demo");
+        TextCommandQueryResponse textCommandQueryResponse = transport.execute("SHOW FULL COLUMNS from demo.t1");
         List<ColumnDefinition> columnDefinitionList = new ArrayList<>();
         for(ResultsetRowResponse resultsetRowResponse:textCommandQueryResponse.getRowList()) {
             parseColumnDefinition(false,columnDefinitionList,resultsetRowResponse);

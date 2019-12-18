@@ -55,8 +55,8 @@ public class ColumnDefinitionResponse extends AbstractResponse implements Respon
         this.name = getLencString(buf, pos);
         this.orgName = getLencString(buf, pos);
         nextLength = (int) MysqlNumberUtils.readLencodeLong(buf, pos);
-
-        charset = CharsetMapping.getJavaEncodingForCharsetValue(MysqlNumberUtils.read2Int(buf, pos));
+        int charsetId = MysqlNumberUtils.read2Int(buf, pos);
+        charset = CharsetMapping.getJavaEncodingForCharsetValue(charsetId);
         columnLength = MysqlNumberUtils.read4Int(buf, pos);
 
         type = ColumnType.ofTypeValue(MysqlNumberUtils.read1Int(buf, pos));
