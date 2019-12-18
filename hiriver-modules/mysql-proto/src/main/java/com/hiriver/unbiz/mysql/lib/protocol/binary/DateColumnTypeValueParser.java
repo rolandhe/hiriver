@@ -21,7 +21,7 @@ public class DateColumnTypeValueParser implements ColumnTypeValueParser {
         int month = (tmp >> 5 & 15);
         int year = tmp >> 9;
         Calendar cal = Calendar.getInstance();
-        cal.set(year, month, day, 0, 0, 0);
+        cal.set(year, month - 1, day, 0, 0, 0);
         return cal.getTime();
     }
 
