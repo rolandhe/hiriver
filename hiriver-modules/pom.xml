@@ -39,7 +39,7 @@
 
         <!-- commons tools -->
         <commons-lang3.version>3.4</commons-lang3.version>
-        <commons-io.version>2.4</commons-io.version>
+        <commons-io.version>2.7</commons-io.version>
         <guava.version>18.0</guava.version>
         <joda-time.version>2.3</joda-time.version>
     </properties>
